@@ -19,7 +19,20 @@ let opts = {
   plugins: ['syntax-decorators', 'transform-decorators-legacy']
 };
 
+let entry = process.argv[2];
+let single = (entry === '--entry');
+if (single) {
+  entry = path.resolve(process.argv[3]);
+}
+else {
+  entry = path.resolve(entry);
+}
+
 let transformer = (content, filename) => {
+  if (single && filename !== entry) {
+    return content;
+  }
+
   if (filename.indexOf('node_modules') !== -1) {
     if (filename.indexOf('node_modules/datastore') === -1) {
       return content;
@@ -41,5 +54,4 @@ let resolver = (request, parent) => {
 
 patcher(transformer, resolver);
 
-let entry = path.resolve(process.argv[2]);
-require(process.argv[2]);
+require(entry);
