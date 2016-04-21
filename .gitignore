@@ -1,0 +1,12 @@
+*.crt
+*.key
+*.pfx
+*.csr
+.srl
+
+node_modules
+build
+coverage
+dist
+data
+bin
