@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import setpath from './setpath';
+
 import path from 'path';
 import fs from 'fs';
 import module from 'module';
@@ -30,9 +32,6 @@ global.__linting__ = {
   errorCount: 0,
   warningCount: 0
 };
-global.__rootpath__ = process.cwd();
-process.env.NODE_PATH = `${__rootpath__}:${__dirname}`;
-module.Module._initPaths();
 
 let cli = new CLIEngine({
   ignore: true,
@@ -73,6 +72,7 @@ process.on('beforeExit', () => {
   reporter.write(collector, true, () => { });
 
   fs.writeFileSync('reports/tests/index.html', jv.junit_viewer('reports/tests'));
+  process.exit(0);
 });
 
 let lint_settings = JSON.parse(fs.readFileSync('.eslintrc'));
@@ -132,7 +132,10 @@ const is_directory = filename => {
 let entry = path.resolve(process.argv[2]);
 if (is_directory(entry)) {
   let files = find(entry).filter(arg => /\.js$/.test(arg)).sort();
-  files.forEach(file => __tests__.addFile(file));
+  files.forEach(file => {
+    console.log('Adding test file:', file);
+    __tests__.addFile(file);
+  });
   __tests__.run();
 }
 else  {

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import setpath from './setpath';
 import path from 'path';
 import fs from 'fs';
 import module from 'module';
@@ -15,7 +16,7 @@ import polyfill from 'babel-polyfill';
 let opts = {
   babelrc: false,
   presets: ['es2015', 'react', 'stage-2'],
-  plugins: ['syntax-decorators', 'transform-decorators-legacy', '__coverage__']
+  plugins: ['syntax-decorators', 'transform-decorators-legacy']
 };
 
 let transformer = (content, filename) => {
