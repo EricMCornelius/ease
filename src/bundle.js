@@ -9,7 +9,9 @@ let directory = path.dirname(pathname);
 let filename = path.basename(pathname);
 let libname = filename.split('.')[0];
 
-console.log(directory, filename, libname);
+const formatter = (percentage, message) => {
+  process.stdout.write(`\r${(100.0 * percentage).toFixed(1)}%: ${message}                 `);
+};
 
 webpack({
   entry,
@@ -19,14 +21,14 @@ webpack({
     library: libname,
     libraryTarget: 'commonjs2'
   },
-  progress: true,
   externals: [
     {
-
+      './external': 'external'
     }
   ],
   target: 'node',
   plugins: [
+    new webpack.ProgressPlugin(formatter),
     new webpack.optimize.DedupePlugin(),
     new webpack.optimize.UglifyJsPlugin()
   ],
@@ -44,6 +46,9 @@ webpack({
     ]
   }
 }, (err, stats) => {
-  console.log(err);
-  console.log(stats);
+  if (err) {
+    throw err;
+  }
+
+  console.log(stats.toString('normal'));
 });

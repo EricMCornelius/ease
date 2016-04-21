@@ -22,7 +22,7 @@
     "url": "https://github.com/ericmcornelius/ease/issues"
   },
   "homepage": "https://github.com/ericmcornelius/ease#readme",
-  "devDependencies": {
+  "dependencies": {
     "babel-core": "^6.7.6",
     "babel-eslint": "^6.0.3",
     "babel-loader": "^6.2.4",
@@ -43,5 +43,10 @@
     "mocha-jenkins-reporter": "^0.2.2",
     "shelljs": "^0.6.0",
     "webpack": "^1.13.0"
+  },
+  "bin": {
+    "ease-test": "./bin/test.js",
+    "ease-run": "./bin/run.js",
+    "ease-bundle": "./bin/bundle.js"
   }
 }
