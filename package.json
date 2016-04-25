@@ -4,7 +4,7 @@
   "description": "Simple babel transpilation, istanbul code coverage, mocha unit testing, and webpack building",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+
   },
   "repository": {
     "type": "git",
