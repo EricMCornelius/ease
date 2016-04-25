@@ -28,7 +28,7 @@ let transformer = (content, filename) => {
 };
 
 let resolver = (request, parent) => {
-  return (request.startsWith('babel-preset') || request.startsWith('babel-plugin')) ?
+  return (request.startsWith('babel-preset') || request.startsWith('babel-plugin') || request.startsWith('webpack-')) ?
     path.resolve(__dirname, '../node_modules/', request) :
     request;
 }
@@ -37,13 +37,14 @@ patcher(transformer, resolver);
 
 let webpack_config = webpack({
   entry: [
-    'webpack-dev-server/client?http://localhost:8888',
-    'webpack/hot/only-dev-server',
+    path.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + '?http://localhost:8888',
+    path.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'),
     entry
   ],
   output: {
     path: '/dist',
-    filename: 'bundle.js'
+    filename: 'bundle.js',
+    publicPath: '/dist'
   },
   devtool: 'cheap-module-source-map',
   resolveLoader: {
@@ -58,12 +59,16 @@ let webpack_config = webpack({
       'regenerator': true
     }
   ],
-  // target: 'node',
   plugins: [
-
+    new webpack.HotModuleReplacementPlugin()
   ],
   module: {
     loaders: [
+      {
+        test: /\.jsx?$/,
+        exclude: /(node_modules|bower_components)/,
+        loader: 'react-hot'
+      },
       {
         test: /\.jsx?$/,
         exclude: /(node_modules|bower_components)/,
@@ -97,7 +102,7 @@ let webpack_config = webpack({
 });
 
 new webpack_dev_server(webpack_config, {
-  // publicPath: '/dist/bundle',
+  publicPath: '/dist',
   hot: true,
   historyApiFallback: true
 }).listen(8888, 'localhost', (err, result) => {

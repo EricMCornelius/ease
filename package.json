@@ -56,7 +56,9 @@
   "bin": {
     "ease-test": "./bin/test.js",
     "ease-run": "./bin/run.js",
-    "ease-bundle": "./bin/bundle.js"
+    "ease-run-web": "./bin/run-web.js",
+    "ease-bundle-node": "./bin/bundle-node.js",
+    "ease-bundle-web": "./bin/bundle-web.js"
   },
   "devDependencies": {}
 }
