@@ -21,33 +21,15 @@ var _module_patch = require('./module_patch');
 
 var _module_patch2 = _interopRequireDefault(_module_patch);
 
+var _utils = require('./utils');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var entry = _path2.default.resolve(process.argv[2]);
 
 var publicPath = '/dist/bundle';
 
-var formatter = function formatter(percentage, message) {
-  process.stdout.clearLine();
-  process.stdout.cursorTo(0);
-  process.stdout.write((100.0 * percentage).toFixed(1) + '%: ' + message);
-};
-
-var babel_opts = {
-  babelrc: false,
-  presets: ['es2015', 'react', 'stage-2'],
-  plugins: ['syntax-decorators', 'transform-decorators-legacy']
-};
-
-var transformer = function transformer(content, filename) {
-  return content;
-};
-
-var resolver = function resolver(request, parent) {
-  return request.startsWith('babel-preset') || request.startsWith('babel-plugin') || request.startsWith('webpack-') ? _path2.default.resolve(__dirname, '../node_modules/', request) : request;
-};
-
-(0, _module_patch2.default)(transformer, resolver);
+(0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
 var webpack_config = (0, _webpack2.default)({
   entry: [_path2.default.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + '?http://localhost:8888', _path2.default.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'), entry],
@@ -77,7 +59,7 @@ var webpack_config = (0, _webpack2.default)({
       test: /\.jsx?$/,
       exclude: /(node_modules|bower_components)/,
       loader: 'babel',
-      query: babel_opts
+      query: _utils.babel_opts
     }, {
       test: /\.s?css$/,
       loaders: ['style', 'css', 'sass']

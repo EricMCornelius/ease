@@ -8,6 +8,7 @@ import module from 'module';
 import patcher from './module_patch';
 import {find} from 'shelljs';
 import mkdirp from 'mkdirp';
+import {babel_opts, eslint_opts, standard_resolver} from './utils';
 
 import {Collector, Reporter} from 'istanbul';
 import {transform} from 'babel-core';
@@ -19,6 +20,7 @@ import polyfill from 'babel-polyfill';
 import plugin from 'eslint-plugin-babel';
 
 global.__tests__ = new mocha({
+  timeout: 20000,
   reporter: 'mocha-jenkins-reporter',
   reporterOptions: {
     junit_report_name: 'tests',
@@ -40,11 +42,7 @@ let cli = new CLIEngine({
 
 cli.addPlugin('eslint-plugin-babel', plugin);
 
-let opts = {
-  babelrc: false,
-  presets: ['es2015', 'react', 'stage-2'],
-  plugins: ['syntax-decorators', 'transform-decorators-legacy', '__coverage__']
-};
+babel_opts.plugins.push('__coverage__');
 
 process.on('beforeExit', () => {
   mkdirp.sync('reports/coverage');
@@ -75,8 +73,6 @@ process.on('beforeExit', () => {
   process.exit(0);
 });
 
-let lint_settings = JSON.parse(fs.readFileSync('.eslintrc'));
-
 let transformer = (content, filename) => {
   if (filename.indexOf('node_modules') !== -1) {
     if (filename.indexOf('node_modules/datastore') === -1) {
@@ -85,16 +81,16 @@ let transformer = (content, filename) => {
   }
 
   let code = fs.readFileSync(filename).toString();
-  opts.filename = filename;
+  babel_opts.filename = filename;
 
-  let lint_results = linter.verify(code, lint_settings, filename);
+  let lint_results = linter.verify(code, eslint_opts, filename);
   let [errorCount, warningCount] = lint_results.reduce(
     (agg, result) => {
       agg[result.severity - 1]++;
       return agg;
     },
     [0, 0]
-  ); 
+  );
 
   __linting__.results.push({
     filePath: filename,
@@ -106,19 +102,12 @@ let transformer = (content, filename) => {
   __linting__.errorCount += errorCount;
   __linting__.warningCount += warningCount;
 
-  let transpiled = transform(code, opts);
+  let transpiled = transform(code, babel_opts);
 
   return transpiled.code;
 };
 
-
-let resolver = (request, parent) => {
-  return (request.startsWith('babel-preset') || request.startsWith('babel-plugin')) ?
-    path.resolve(__dirname, '../node_modules/', request) :
-    request;
-}
-
-patcher(transformer, resolver);
+patcher(transformer, standard_resolver);
 
 const is_directory = filename => {
   try {

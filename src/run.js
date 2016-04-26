@@ -1,23 +1,15 @@
 #!/usr/bin/env node
 
 import setpath from './setpath';
+
 import path from 'path';
 import fs from 'fs';
 import module from 'module';
 import patcher from './module_patch';
-
-global.__rootpath__ = process.cwd();
-process.env.NODE_PATH = `${__rootpath__}:${__dirname}`;
-module.Module._initPaths();
+import {babel_opts, standard_resolver} from './utils';
 
 import {transform} from 'babel-core';
 import polyfill from 'babel-polyfill';
-
-let opts = {
-  babelrc: false,
-  presets: ['es2015', 'react', 'stage-2'],
-  plugins: ['syntax-decorators', 'transform-decorators-legacy']
-};
 
 let entry = process.argv[2];
 let single = (entry === '--entry');
@@ -40,18 +32,12 @@ let transformer = (content, filename) => {
   }
 
   let code = fs.readFileSync(filename).toString();
-  opts.filename = filename;
+  babel_opts.filename = filename;
 
-  let transpiled = transform(code, opts);
+  let transpiled = transform(code, babel_opts);
   return transpiled.code;
 };
 
-let resolver = (request, parent) => {
-  return (request.startsWith('babel-preset') || request.startsWith('babel-plugin')) ?
-    path.resolve(__dirname, '../node_modules/', request) :
-    request;
-}
-
-patcher(transformer, resolver);
+patcher(transformer, standard_resolver);
 
 require(entry);

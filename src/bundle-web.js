@@ -5,6 +5,7 @@ import setpath from './setpath';
 import webpack from 'webpack';
 import path from 'path';
 import patcher from './module_patch';
+import {formatter, babel_opts, standard_transformer, standard_resolver} from './utils';
 
 let entry = path.resolve(process.argv[2]);
 let pathname = path.resolve(process.argv[3]);
@@ -12,29 +13,7 @@ let directory = path.dirname(pathname);
 let filename = path.basename(pathname);
 let libname = filename.split('.')[0];
 
-const formatter = (percentage, message) => {
-  process.stdout.clearLine();
-  process.stdout.cursorTo(0);
-  process.stdout.write(`${(100.0 * percentage).toFixed(1)}%: ${message}`);
-};
-
-const babel_opts = {
-  babelrc: false,
-  presets: ['es2015', 'react', 'stage-2'],
-  plugins: ['syntax-decorators', 'transform-decorators-legacy']
-};
-
-let transformer = (content, filename) => {
-  return content;
-};
-
-let resolver = (request, parent) => {
-  return (request.startsWith('babel-preset') || request.startsWith('babel-plugin')) ?
-    path.resolve(__dirname, '../node_modules/', request) :
-    request;
-}
-
-patcher(transformer, resolver);
+patcher(standard_transformer, standard_resolver);
 
 webpack({
   entry,
@@ -55,7 +34,7 @@ webpack({
       'regenerator': true
     }
   ],
-  // target: 'node',
+  target: 'web',
   plugins: [
     new webpack.ProgressPlugin(formatter),
     new webpack.DefinePlugin({

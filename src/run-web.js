@@ -6,34 +6,13 @@ import webpack from 'webpack';
 import webpack_dev_server from 'webpack-dev-server';
 import path from 'path';
 import patcher from './module_patch';
+import {formatter, babel_opts, standard_transformer, standard_resolver} from './utils';
 
 let entry = path.resolve(process.argv[2]);
 
 const publicPath = '/dist/bundle';
 
-const formatter = (percentage, message) => {
-  process.stdout.clearLine();
-  process.stdout.cursorTo(0);
-  process.stdout.write(`${(100.0 * percentage).toFixed(1)}%: ${message}`);
-};
-
-const babel_opts = {
-  babelrc: false,
-  presets: ['es2015', 'react', 'stage-2'],
-  plugins: ['syntax-decorators', 'transform-decorators-legacy']
-};
-
-let transformer = (content, filename) => {
-  return content;
-};
-
-let resolver = (request, parent) => {
-  return (request.startsWith('babel-preset') || request.startsWith('babel-plugin') || request.startsWith('webpack-')) ?
-    path.resolve(__dirname, '../node_modules/', request) :
-    request;
-}
-
-patcher(transformer, resolver);
+patcher(standard_transformer, standard_resolver);
 
 let webpack_config = webpack({
   entry: [

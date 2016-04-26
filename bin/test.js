@@ -29,6 +29,8 @@ var _mkdirp = require('mkdirp');
 
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
+var _utils = require('./utils');
+
 var _istanbul = require('istanbul');
 
 var _babelCore = require('babel-core');
@@ -54,6 +56,7 @@ var _eslintPluginBabel2 = _interopRequireDefault(_eslintPluginBabel);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 global.__tests__ = new _mocha2.default({
+  timeout: 20000,
   reporter: 'mocha-jenkins-reporter',
   reporterOptions: {
     junit_report_name: 'tests',
@@ -75,11 +78,7 @@ var cli = new _eslint.CLIEngine({
 
 cli.addPlugin('eslint-plugin-babel', _eslintPluginBabel2.default);
 
-var opts = {
-  babelrc: false,
-  presets: ['es2015', 'react', 'stage-2'],
-  plugins: ['syntax-decorators', 'transform-decorators-legacy', '__coverage__']
-};
+_utils.babel_opts.plugins.push('__coverage__');
 
 process.on('beforeExit', function () {
   _mkdirp2.default.sync('reports/coverage');
@@ -110,8 +109,6 @@ process.on('beforeExit', function () {
   process.exit(0);
 });
 
-var lint_settings = JSON.parse(_fs2.default.readFileSync('.eslintrc'));
-
 var transformer = function transformer(content, filename) {
   if (filename.indexOf('node_modules') !== -1) {
     if (filename.indexOf('node_modules/datastore') === -1) {
@@ -120,9 +117,9 @@ var transformer = function transformer(content, filename) {
   }
 
   var code = _fs2.default.readFileSync(filename).toString();
-  opts.filename = filename;
+  _utils.babel_opts.filename = filename;
 
-  var lint_results = _eslint.linter.verify(code, lint_settings, filename);
+  var lint_results = _eslint.linter.verify(code, _utils.eslint_opts, filename);
 
   var _lint_results$reduce = lint_results.reduce(function (agg, result) {
     agg[result.severity - 1]++;
@@ -145,16 +142,12 @@ var transformer = function transformer(content, filename) {
   __linting__.errorCount += errorCount;
   __linting__.warningCount += warningCount;
 
-  var transpiled = (0, _babelCore.transform)(code, opts);
+  var transpiled = (0, _babelCore.transform)(code, _utils.babel_opts);
 
   return transpiled.code;
 };
 
-var resolver = function resolver(request, parent) {
-  return request.startsWith('babel-preset') || request.startsWith('babel-plugin') ? _path2.default.resolve(__dirname, '../node_modules/', request) : request;
-};
-
-(0, _module_patch2.default)(transformer, resolver);
+(0, _module_patch2.default)(transformer, _utils.standard_resolver);
 
 var is_directory = function is_directory(filename) {
   try {
