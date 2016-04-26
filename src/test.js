@@ -67,6 +67,7 @@ process.on('beforeExit', () => {
   reporter.add('text');
   reporter.add('text-summary');
   reporter.add('json');
+  reporter.add('cobertura');
   reporter.write(collector, true, () => { });
 
   fs.writeFileSync('reports/tests/index.html', jv.junit_viewer('reports/tests'));

@@ -103,6 +103,7 @@ process.on('beforeExit', function () {
   reporter.add('text');
   reporter.add('text-summary');
   reporter.add('json');
+  reporter.add('cobertura');
   reporter.write(collector, true, function () {});
 
   _fs2.default.writeFileSync('reports/tests/index.html', _junitViewer2.default.junit_viewer('reports/tests'));
