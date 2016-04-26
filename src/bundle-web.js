@@ -16,7 +16,10 @@ let libname = filename.split('.')[0];
 patcher(standard_transformer, standard_resolver);
 
 webpack({
-  entry,
+  entry: [
+    path.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'),
+    entry
+  ],
   devtool: 'cheap-module-source-map',
   output: {
     path: directory,

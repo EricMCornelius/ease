@@ -18,6 +18,7 @@ let webpack_config = webpack({
   entry: [
     path.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + '?http://localhost:8888',
     path.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'),
+    path.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'),
     entry
   ],
   output: {

@@ -32,7 +32,7 @@ var publicPath = '/dist/bundle';
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
 var webpack_config = (0, _webpack2.default)({
-  entry: [_path2.default.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + '?http://localhost:8888', _path2.default.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'), entry],
+  entry: [_path2.default.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + '?http://localhost:8888', _path2.default.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'), _path2.default.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'), entry],
   output: {
     path: '/dist',
     filename: 'bundle.js',
