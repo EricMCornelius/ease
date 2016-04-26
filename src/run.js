@@ -6,7 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import module from 'module';
 import patcher from './module_patch';
-import {babel_opts, standard_resolver} from './utils';
+import {babel_opts, standard_resolver, cache} from './utils';
 
 import {transform} from 'babel-core';
 import polyfill from 'babel-polyfill';
@@ -26,15 +26,22 @@ let transformer = (content, filename) => {
   }
 
   if (filename.indexOf('node_modules') !== -1) {
-    if (filename.indexOf('node_modules/datastore') === -1) {
-      return content;
-    }
+    return content;
+  }
+
+  let key = cache.hash(content);
+  try {
+    return cache.get(key);
+  }
+  catch(err) {
+
   }
 
   let code = fs.readFileSync(filename).toString();
   babel_opts.filename = filename;
 
   let transpiled = transform(code, babel_opts);
+  cache.put(key, transpiled.code);
   return transpiled.code;
 };
 

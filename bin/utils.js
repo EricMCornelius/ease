@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.standard_resolver = exports.standard_transformer = exports.eslint_opts = exports.babel_opts = exports.formatter = undefined;
+exports.cache = exports.standard_resolver = exports.standard_transformer = exports.eslint_opts = exports.babel_opts = exports.formatter = undefined;
 
 var _path = require('path');
 
@@ -11,32 +11,43 @@ var _path2 = _interopRequireDefault(_path);
 
 var _shelljs = require('shelljs');
 
-var _builtins = require('builtins');
+var _cache = require('./cache');
 
-var _builtins2 = _interopRequireDefault(_builtins);
+var _cache2 = _interopRequireDefault(_cache);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var ignored = _builtins2.default.reduce(function (agg, key) {
-  agg[key] = true;return agg;
-}, {});
-ignored.test = true;
+var cache_dir = _path2.default.resolve('.ease_cache');
 
-var resolved_from_ease = [/babel\-/, /webpack/];
+var get_cache = function get_cache() {
+  return new _cache2.default({ dir: cache_dir });
+};
 
-var deps = (0, _shelljs.find)(_path2.default.resolve(__dirname, '../node_modules')).filter(function (file) {
-  return (/package\.json$/.test(file)
-  );
-}).reduce(function (agg, file) {
-  var dir = _path2.default.dirname(file);
-  var dep = _path2.default.basename(dir);
-  if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1) {
+var get_deps = function get_deps(dir) {
+  return (0, _shelljs.find)(dir).filter(function (file) {
+    return (/package\.json$/.test(file)
+    );
+  }).reduce(function (agg, file) {
+    var dir = _path2.default.dirname(file);
+    var dep = _path2.default.basename(dir);
+    if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1) {
+      return agg;
+    }
+    agg[dep] = dir;
     return agg;
-  }
-  if (ignored[dep]) return agg;
-  agg[dep] = dir;
-  return agg;
-}, {});
+  }, {});
+};
+
+var dep_dir = _path2.default.resolve(__dirname, '../node_modules');
+var cache = get_cache();
+
+var deps = null;
+try {
+  deps = cache.get('.deps');
+} catch (err) {
+  deps = get_deps(dep_dir);
+  cache.put('.deps', deps);
+}
 
 var formatter = function formatter(percentage, message) {
   process.stdout.clearLine();
@@ -94,3 +105,4 @@ exports.babel_opts = babel_opts;
 exports.eslint_opts = eslint_opts;
 exports.standard_transformer = standard_transformer;
 exports.standard_resolver = standard_resolver;
+exports.cache = cache;

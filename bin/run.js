@@ -45,15 +45,19 @@ var transformer = function transformer(content, filename) {
   }
 
   if (filename.indexOf('node_modules') !== -1) {
-    if (filename.indexOf('node_modules/datastore') === -1) {
-      return content;
-    }
+    return content;
   }
+
+  var key = _utils.cache.hash(content);
+  try {
+    return _utils.cache.get(key);
+  } catch (err) {}
 
   var code = _fs2.default.readFileSync(filename).toString();
   _utils.babel_opts.filename = filename;
 
   var transpiled = (0, _babelCore.transform)(code, _utils.babel_opts);
+  _utils.cache.put(key, transpiled.code);
   return transpiled.code;
 };
 

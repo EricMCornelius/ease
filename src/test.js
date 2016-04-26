@@ -8,7 +8,7 @@ import module from 'module';
 import patcher from './module_patch';
 import {find} from 'shelljs';
 import mkdirp from 'mkdirp';
-import {babel_opts, eslint_opts, standard_resolver} from './utils';
+import {babel_opts, eslint_opts, standard_resolver, cache} from './utils';
 
 import {Collector, Reporter} from 'istanbul';
 import {transform} from 'babel-core';
@@ -76,36 +76,51 @@ process.on('beforeExit', () => {
 
 let transformer = (content, filename) => {
   if (filename.indexOf('node_modules') !== -1) {
-    if (filename.indexOf('node_modules/datastore') === -1) {
-      return content;
-    }
+    return content;
   }
 
   let code = fs.readFileSync(filename).toString();
   babel_opts.filename = filename;
 
-  let lint_results = linter.verify(code, eslint_opts, filename);
-  let [errorCount, warningCount] = lint_results.reduce(
-    (agg, result) => {
-      agg[result.severity - 1]++;
-      return agg;
-    },
-    [0, 0]
-  );
+  let key = cache.hash(code);
+
+  let lint = {};
+  try {
+    lint = cache.get(key + '.lint');
+  }
+  catch(err) {
+    let results = linter.verify(code, eslint_opts, filename);
+    let [errors, warnings] = results.reduce(
+      (agg, result) => {
+        agg[result.severity - 1]++;
+        return agg;
+      },
+      [0, 0]
+    );
+    lint = {errors, warnings, results};
+    cache.put(key + '.lint', lint);
+  }
 
   __linting__.results.push({
     filePath: filename,
-    messages: lint_results,
-    errorCount,
-    warningCount
+    messages: lint.results,
+    errorCount: lint.errors,
+    warningCount: lint.warnings
   });
 
-  __linting__.errorCount += errorCount;
-  __linting__.warningCount += warningCount;
+  __linting__.errorCount += lint.errors;
+  __linting__.warningCount += lint.warnings;
 
-  let transpiled = transform(code, babel_opts);
+  let transpiled = null;
+  try {
+    transpiled = cache.get(key + '.transpiled');
+  }
+  catch(err) {
+    transpiled = transform(code, babel_opts).code;
+    cache.put(key + '.transpiled', transpiled);
+  }
 
-  return transpiled.code;
+  return transpiled;
 };
 
 patcher(transformer, standard_resolver);

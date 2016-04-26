@@ -112,40 +112,53 @@ process.on('beforeExit', function () {
 
 var transformer = function transformer(content, filename) {
   if (filename.indexOf('node_modules') !== -1) {
-    if (filename.indexOf('node_modules/datastore') === -1) {
-      return content;
-    }
+    return content;
   }
 
   var code = _fs2.default.readFileSync(filename).toString();
   _utils.babel_opts.filename = filename;
 
-  var lint_results = _eslint.linter.verify(code, _utils.eslint_opts, filename);
+  var key = _utils.cache.hash(code);
 
-  var _lint_results$reduce = lint_results.reduce(function (agg, result) {
-    agg[result.severity - 1]++;
-    return agg;
-  }, [0, 0]);
+  var lint = {};
+  try {
+    lint = _utils.cache.get(key + '.lint');
+  } catch (err) {
+    var results = _eslint.linter.verify(code, _utils.eslint_opts, filename);
 
-  var _lint_results$reduce2 = _slicedToArray(_lint_results$reduce, 2);
+    var _results$reduce = results.reduce(function (agg, result) {
+      agg[result.severity - 1]++;
+      return agg;
+    }, [0, 0]);
 
-  var errorCount = _lint_results$reduce2[0];
-  var warningCount = _lint_results$reduce2[1];
+    var _results$reduce2 = _slicedToArray(_results$reduce, 2);
 
+    var errors = _results$reduce2[0];
+    var warnings = _results$reduce2[1];
+
+    lint = { errors: errors, warnings: warnings, results: results };
+    _utils.cache.put(key + '.lint', lint);
+  }
 
   __linting__.results.push({
     filePath: filename,
-    messages: lint_results,
-    errorCount: errorCount,
-    warningCount: warningCount
+    messages: lint.results,
+    errorCount: lint.errors,
+    warningCount: lint.warnings
   });
 
-  __linting__.errorCount += errorCount;
-  __linting__.warningCount += warningCount;
+  __linting__.errorCount += lint.errors;
+  __linting__.warningCount += lint.warnings;
 
-  var transpiled = (0, _babelCore.transform)(code, _utils.babel_opts);
+  var transpiled = null;
+  try {
+    transpiled = _utils.cache.get(key + '.transpiled');
+  } catch (err) {
+    transpiled = (0, _babelCore.transform)(code, _utils.babel_opts).code;
+    _utils.cache.put(key + '.transpiled', transpiled);
+  }
 
-  return transpiled.code;
+  return transpiled;
 };
 
 (0, _module_patch2.default)(transformer, _utils.standard_resolver);

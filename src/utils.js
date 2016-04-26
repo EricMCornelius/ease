@@ -1,13 +1,12 @@
 import path from 'path';
 import {find} from 'shelljs';
-import builtins from 'builtins';
+import Cache from './cache';
 
-let ignored = builtins.reduce((agg, key) => {agg[key] = true; return agg;}, {});
-ignored.test = true;
+let cache_dir = path.resolve('.ease_cache');
 
-let resolved_from_ease = [/babel\-/, /webpack/];
+const get_cache = () => new Cache({dir: cache_dir});
 
-let deps = find(path.resolve(__dirname, '../node_modules'))
+const get_deps = dir => find(dir)
   .filter(file => /package\.json$/.test(file))
   .reduce((agg, file) => {
     let dir = path.dirname(file);
@@ -15,10 +14,21 @@ let deps = find(path.resolve(__dirname, '../node_modules'))
     if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1) {
       return agg;
     }
-    if (ignored[dep]) return agg;
     agg[dep] = dir;
     return agg;
   }, {});
+
+let dep_dir = path.resolve(__dirname, '../node_modules');
+const cache = get_cache();
+
+let deps = null;
+try {
+  deps = cache.get('.deps');
+}
+catch (err) {
+  deps = get_deps(dep_dir);
+  cache.put('.deps', deps);
+}
 
 const formatter = (percentage, message) => {
   process.stdout.clearLine();
@@ -76,5 +86,6 @@ export {
   babel_opts,
   eslint_opts,
   standard_transformer,
-  standard_resolver
+  standard_resolver,
+  cache
 }
