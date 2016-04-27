@@ -56,7 +56,7 @@ const eslint_opts = {
     'arrow-body-style': [2, 'as-needed'],
     'babel/arrow-parens': [2, 'as-needed'],
     'constructor-super': 2,
-    'no-arrow-condition': 2,
+    'no-constant-condition': 2,
     'no-class-assign': 2,
     'no-const-assign': 2,
     'no-dupe-class-members': 2,
