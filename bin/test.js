@@ -31,6 +31,10 @@ var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
 var _utils = require('./utils');
 
+var _jsYaml = require('js-yaml');
+
+var _jsYaml2 = _interopRequireDefault(_jsYaml);
+
 var _istanbul = require('istanbul');
 
 var _babelCore = require('babel-core');
@@ -111,6 +115,21 @@ process.on('beforeExit', function () {
 });
 
 var transformer = function transformer(content, filename) {
+  if (/\.s?css$/.test(filename)) {
+    console.log('Ignoring stylesheet: ' + filename);
+    return '';
+  }
+
+  if (/\.yaml$/.test(filename)) {
+    console.log('Importing yaml: ' + filename);
+    return 'module.exports = ' + JSON.stringify(_jsYaml2.default.load(content)) + ';';
+  }
+
+  if (/\.json$/.test(filename)) {
+    console.log('Importing json: ' + filename);
+    return 'module.exports = ' + JSON.stringify(JSON.parse(content)) + ';';
+  }
+
   if (filename.indexOf('node_modules') !== -1) {
     return content;
   }

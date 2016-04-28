@@ -1,6 +1,6 @@
 {
   "name": "ease",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Simple babel transpilation, istanbul code coverage, mocha unit testing, and webpack building",
   "main": "index.js",
   "scripts": {},
@@ -36,6 +36,7 @@
     "eslint": "^2.8.0",
     "eslint-plugin-babel": "^3.2.0",
     "istanbul": "^0.4.3",
+    "js-yaml": "^3.6.0",
     "json-loader": "^0.5.4",
     "junit-viewer": "^4.9.6",
     "mkdirp": "^0.5.1",

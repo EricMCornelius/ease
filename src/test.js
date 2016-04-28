@@ -10,6 +10,7 @@ import {find} from 'shelljs';
 import mkdirp from 'mkdirp';
 import {babel_opts, eslint_opts, standard_resolver, cache} from './utils';
 
+import yaml from 'js-yaml';
 import {Collector, Reporter} from 'istanbul';
 import {transform} from 'babel-core';
 import {SourceCode, CLIEngine, linter} from 'eslint';
@@ -75,6 +76,21 @@ process.on('beforeExit', () => {
 });
 
 let transformer = (content, filename) => {
+  if (/\.s?css$/.test(filename)) {
+    console.log(`Ignoring stylesheet: ${filename}`);
+    return '';
+  }
+
+  if (/\.yaml$/.test(filename)) {
+    console.log(`Importing yaml: ${filename}`);
+    return `module.exports = ${JSON.stringify(yaml.load(content))};`;
+  }
+
+  if (/\.json$/.test(filename)) {
+    console.log(`Importing json: ${filename}`);
+    return `module.exports = ${JSON.stringify(JSON.parse(content))};`;
+  }
+
   if (filename.indexOf('node_modules') !== -1) {
     return content;
   }
