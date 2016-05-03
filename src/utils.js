@@ -1,4 +1,8 @@
+import fs from 'fs';
 import path from 'path';
+import _ from 'lodash';
+import log from 'winston';
+
 import {find} from 'shelljs';
 import Cache from './cache';
 
@@ -36,13 +40,15 @@ const formatter = (percentage, message) => {
   process.stdout.write(`${(100.0 * percentage).toFixed(1)}%: ${message}`);
 };
 
-const babel_opts = {
+let babel_opts = {};
+const babel_default_opts = {
   babelrc: false,
   presets: ['es2015', 'react', 'stage-2'],
   plugins: ['syntax-decorators', 'transform-decorators-legacy']
 };
 
-const eslint_opts = {
+let eslint_opts = {};
+const eslint_default_opts = {
   'parser': 'babel-eslint',
   'env': {
     'node': true
@@ -97,12 +103,33 @@ const eslint_opts = {
   'plugins': [
     'babel'
   ]
-}
+};
 
 let standard_transformer = (content, filename) => content;
 
-let standard_resolver = (request, parent) => {
-  return deps[request] ? deps[request] : request;
+let standard_transformer_filter = filename => filename.indexOf('node_modules') === -1;
+
+let standard_resolver = (request, parent) => deps[request] ? deps[request] : request;
+
+let config = {};
+
+try {
+  const config_file = path.resolve(process.cwd(), '.ease_config');
+  const config = require(config_file);
+  _.defaultsDeep(eslint_opts, config.eslint, eslint_default_opts);
+  _.defaultsDeep(babel_opts, config.babel, babel_default_opts);
+
+  if (config.transform_filter) {
+    standard_transformer_filter = config.transform_filter;
+  }
+
+  if (config.log_level) {
+    log.level = config.log_level;
+  }
+}
+catch(err) {
+  eslint_opts = eslint_default_opts;
+  babel_opts = babel_default_opts;
 }
 
 export {
@@ -110,6 +137,8 @@ export {
   babel_opts,
   eslint_opts,
   standard_transformer,
+  standard_transformer_filter,
   standard_resolver,
-  cache
+  cache,
+  log
 }

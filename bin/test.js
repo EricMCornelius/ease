@@ -29,6 +29,10 @@ var _mkdirp = require('mkdirp');
 
 var _mkdirp2 = _interopRequireDefault(_mkdirp);
 
+var _jsYaml = require('js-yaml');
+
+var _jsYaml2 = _interopRequireDefault(_jsYaml);
+
 var _utils = require('./utils');
 
 var _istanbul = require('istanbul');
@@ -111,7 +115,19 @@ process.on('beforeExit', function () {
 });
 
 var transformer = function transformer(content, filename) {
-  if (filename.indexOf('node_modules') !== -1) {
+  if (filename.endsWith('.css') || filename.endsWith('.scss')) {
+    return '';
+  }
+
+  if (filename.endsWith('.yaml')) {
+    return 'module.exports = ' + JSON.stringify(_jsYaml2.default.load(content));
+  }
+
+  if (filename.endsWith('.json')) {
+    return content;
+  }
+
+  if (!(0, _utils.standard_transformer_filter)(filename)) {
     return content;
   }
 
@@ -178,7 +194,7 @@ if (is_directory(entry)) {
     );
   }).sort();
   files.forEach(function (file) {
-    console.log('Adding test file:', file);
+    _utils.log.info('Adding test file:', file);
     __tests__.addFile(file);
   });
   __tests__.run();

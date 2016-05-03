@@ -31,20 +31,11 @@ var _babelPolyfill2 = _interopRequireDefault(_babelPolyfill);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var entry = process.argv[2];
-var single = entry === '--entry';
-if (single) {
-  entry = _path2.default.resolve(process.argv[3]);
-} else {
-  entry = _path2.default.resolve(entry);
-}
+var entry = _path2.default.resolve(process.argv[2]);
 
 var transformer = function transformer(content, filename) {
-  if (single && filename !== entry) {
-    return content;
-  }
-
-  if (filename.indexOf('node_modules') !== -1) {
+  _utils.log.debug('Processing file: ' + filename);
+  if (!(0, _utils.standard_transformer_filter)(filename)) {
     return content;
   }
 

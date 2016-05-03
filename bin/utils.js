@@ -3,11 +3,23 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.cache = exports.standard_resolver = exports.standard_transformer = exports.eslint_opts = exports.babel_opts = exports.formatter = undefined;
+exports.log = exports.cache = exports.standard_resolver = exports.standard_transformer_filter = exports.standard_transformer = exports.eslint_opts = exports.babel_opts = exports.formatter = undefined;
+
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
 
 var _path = require('path');
 
 var _path2 = _interopRequireDefault(_path);
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _winston = require('winston');
+
+var _winston2 = _interopRequireDefault(_winston);
 
 var _shelljs = require('shelljs');
 
@@ -55,13 +67,15 @@ var formatter = function formatter(percentage, message) {
   process.stdout.write((100.0 * percentage).toFixed(1) + '%: ' + message);
 };
 
-var babel_opts = {
+var babel_opts = {};
+var babel_default_opts = {
   babelrc: false,
   presets: ['es2015', 'react', 'stage-2'],
   plugins: ['syntax-decorators', 'transform-decorators-legacy']
 };
 
-var eslint_opts = {
+var eslint_opts = {};
+var eslint_default_opts = {
   'parser': 'babel-eslint',
   'env': {
     'node': true
@@ -120,13 +134,39 @@ var standard_transformer = function standard_transformer(content, filename) {
   return content;
 };
 
+var standard_transformer_filter = function standard_transformer_filter(filename) {
+  return filename.indexOf('node_modules') === -1;
+};
+
 var standard_resolver = function standard_resolver(request, parent) {
   return deps[request] ? deps[request] : request;
 };
+
+var config = {};
+
+try {
+  var config_file = _path2.default.resolve(process.cwd(), '.ease_config');
+  var _config = require(config_file);
+  _lodash2.default.defaultsDeep(eslint_opts, _config.eslint, eslint_default_opts);
+  _lodash2.default.defaultsDeep(babel_opts, _config.babel, babel_default_opts);
+
+  if (_config.transform_filter) {
+    exports.standard_transformer_filter = standard_transformer_filter = _config.transform_filter;
+  }
+
+  if (_config.log_level) {
+    _winston2.default.level = _config.log_level;
+  }
+} catch (err) {
+  exports.eslint_opts = eslint_opts = eslint_default_opts;
+  exports.babel_opts = babel_opts = babel_default_opts;
+}
 
 exports.formatter = formatter;
 exports.babel_opts = babel_opts;
 exports.eslint_opts = eslint_opts;
 exports.standard_transformer = standard_transformer;
+exports.standard_transformer_filter = standard_transformer_filter;
 exports.standard_resolver = standard_resolver;
 exports.cache = cache;
+exports.log = _winston2.default;

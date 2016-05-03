@@ -8,7 +8,8 @@ import module from 'module';
 import patcher from './module_patch';
 import {find} from 'shelljs';
 import mkdirp from 'mkdirp';
-import {babel_opts, eslint_opts, standard_resolver, cache} from './utils';
+import yaml from 'js-yaml';
+import {babel_opts, eslint_opts, standard_resolver, standard_transformer_filter, log, cache} from './utils';
 
 import {Collector, Reporter} from 'istanbul';
 import {transform} from 'babel-core';
@@ -75,7 +76,19 @@ process.on('beforeExit', () => {
 });
 
 let transformer = (content, filename) => {
-  if (filename.indexOf('node_modules') !== -1) {
+  if (filename.endsWith('.css') || filename.endsWith('.scss')) {
+    return '';
+  }
+
+  if (filename.endsWith('.yaml')) {
+    return `module.exports = ${JSON.stringify(yaml.load(content))}`;
+  }
+
+  if (filename.endsWith('.json')) {
+    return content;
+  }
+
+  if (!standard_transformer_filter(filename)) {
     return content;
   }
 
@@ -138,7 +151,7 @@ let entry = path.resolve(process.argv[2]);
 if (is_directory(entry)) {
   let files = find(entry).filter(arg => /\.js$/.test(arg)).sort();
   files.forEach(file => {
-    console.log('Adding test file:', file);
+    log.info('Adding test file:', file);
     __tests__.addFile(file);
   });
   __tests__.run();

@@ -6,26 +6,16 @@ import path from 'path';
 import fs from 'fs';
 import module from 'module';
 import patcher from './module_patch';
-import {babel_opts, standard_resolver, cache} from './utils';
+import {babel_opts, standard_resolver, standard_transformer_filter, log, cache} from './utils';
 
 import {transform} from 'babel-core';
 import polyfill from 'babel-polyfill';
 
-let entry = process.argv[2];
-let single = (entry === '--entry');
-if (single) {
-  entry = path.resolve(process.argv[3]);
-}
-else {
-  entry = path.resolve(entry);
-}
+let entry = path.resolve(process.argv[2]);
 
 let transformer = (content, filename) => {
-  if (single && filename !== entry) {
-    return content;
-  }
-
-  if (filename.indexOf('node_modules') !== -1) {
+  log.debug(`Processing file: ${filename}`);
+  if (!standard_transformer_filter(filename)) {
     return content;
   }
 
