@@ -54,7 +54,7 @@ var libname = filename.split('.')[0];
   module: {
     loaders: [{
       test: /\.jsx?$/,
-      exclude: /(node_modules|bower_components)/,
+      include: _utils.standard_transformer_filter,
       loader: 'babel',
       query: _utils.babel_opts
     }, {

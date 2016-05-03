@@ -5,7 +5,7 @@ import setpath from './setpath';
 import webpack from 'webpack';
 import path from 'path';
 import patcher from './module_patch';
-import {formatter, babel_opts, standard_transformer, standard_resolver} from './utils';
+import {formatter, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
 
 let entry = path.resolve(process.argv[2]);
 let pathname = path.resolve(process.argv[3]);
@@ -50,7 +50,7 @@ webpack({
     loaders: [
       {
         test: /\.jsx?$/,
-        exclude: /(node_modules|bower_components)/,
+        include: standard_transformer_filter,
         loader: 'babel',
         query: babel_opts
       },

@@ -53,11 +53,11 @@ var webpack_config = (0, _webpack2.default)({
   module: {
     loaders: [{
       test: /\.jsx?$/,
-      exclude: /(node_modules|bower_components)/,
+      include: _utils.standard_transformer_filter,
       loader: 'react-hot'
     }, {
       test: /\.jsx?$/,
-      exclude: /(node_modules|bower_components)/,
+      include: _utils.standard_transformer_filter,
       loader: 'babel',
       query: _utils.babel_opts
     }, {
