@@ -76,24 +76,27 @@ var project_deps_key = cache.hash(project_package) + '.deps';
 try {
   project_dep_trie = cache.get(project_deps_key);
 } catch (err) {
-  var _project_dep_trie = get_packages(process.cwd()).map(function (dep) {
+  project_dep_trie = get_packages(process.cwd()).map(function (dep) {
     return dep.split('/');
   }).reduce(function (agg, parts) {
     return _lodash2.default.set(agg, parts, {});
   }, {});
-  cache.put(project_deps_key, _project_dep_trie);
+  cache.put(project_deps_key, project_dep_trie);
 }
 
 var matching_prefixes_impl = function matching_prefixes_impl(node, path) {
   var curr = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
   var results = arguments.length <= 3 || arguments[3] === undefined ? [] : arguments[3];
 
-  var next = path.shift();
-  if (next === undefined) return results;
+  if (path.length === 0) {
+    return results;
+  }
 
+  var next = path.shift();
   var lookup = node[next];
   curr = curr.concat(next);
-  return lookup ? matching_prefixes_impl(lookup, path, curr, lookup['package.json'] ? results.concat([curr.join('/'), curr.concat('node_modules').join('/')]) : results) : results;
+
+  return lookup ? matching_prefixes_impl(lookup, path, curr, lookup['package.json'] ? results.concat(curr.join('/')) : results) : results;
 };
 
 var matching_prefixes = function matching_prefixes(path) {
@@ -178,13 +181,13 @@ var standard_transformer_filter = function standard_transformer_filter(filename)
 };
 
 var standard_resolver = function standard_resolver(request, parent) {
+  _winston2.default.debug('Resolving ' + request + ' in ' + parent.id);
+
   if (ease_deps[request]) return { request: ease_deps[request] };
   if (!parent.id.startsWith(process.cwd())) return { request: request, parent: parent };
 
   var prefixes = matching_prefixes(parent.id);
-  console.log(parent.id, request);
-  console.log(prefixes);
-  parent.paths = prefixes;
+  parent.paths = prefixes.concat(parent.paths);
   return {
     parent: parent,
     request: request

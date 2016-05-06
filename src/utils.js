@@ -51,21 +51,23 @@ try {
   project_dep_trie = cache.get(project_deps_key);
 }
 catch (err) {
-  let project_dep_trie = get_packages(process.cwd())
+  project_dep_trie = get_packages(process.cwd())
     .map(dep => dep.split('/'))
     .reduce((agg, parts) => _.set(agg, parts, {}), {}); 
   cache.put(project_deps_key, project_dep_trie);
 }
 
 let matching_prefixes_impl = (node, path, curr = [], results = []) => {
-  let next = path.shift();
-  if (next === undefined) return results;
+  if (path.length === 0) {
+    return results;
+  }
 
+  let next = path.shift();
   let lookup = node[next];
   curr = curr.concat(next);
+
   return lookup ?
-    matching_prefixes_impl(lookup, path, curr, lookup['package.json'] ? 
-      results.concat([curr.join('/'), curr.concat('node_modules').join('/')]): results) :
+    matching_prefixes_impl(lookup, path, curr, lookup['package.json'] ? results.concat(curr.join('/')) : results) :
     results;
 };
 
@@ -147,13 +149,13 @@ let standard_transformer = (content, filename) => content;
 let standard_transformer_filter = filename => filename.indexOf('node_modules') === -1;
 
 let standard_resolver = (request, parent) => {
+  log.debug(`Resolving ${request} in ${parent.id}`);
+
   if (ease_deps[request]) return {request: ease_deps[request]};
   if (!parent.id.startsWith(process.cwd())) return {request, parent};
 
   const prefixes = matching_prefixes(parent.id);
-  console.log(parent.id, request);
-  console.log(prefixes);
-  parent.paths = prefixes;
+  parent.paths = prefixes.concat(parent.paths);
   return {
     parent,
     request
