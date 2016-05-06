@@ -18,9 +18,13 @@ var _compile = _module3.default.prototype._compile;
 var _resolve = _module3.default._resolveFilename;
 
 exports.default = function (transformer, resolver) {
-  _module3.default._resolveFilename = function (request, parent) {
-    request = resolver(request, parent);
-    return _resolve(request, parent);
+  _module3.default._resolveFilename = function (request_, parent_) {
+    var _resolver = resolver(request_, parent_);
+
+    var request = _resolver.request;
+    var parent = _resolver.parent;
+
+    return _resolve(request || request_, parent || parent_);
   };
 
   _module3.default.prototype._compile = function (content, filename) {

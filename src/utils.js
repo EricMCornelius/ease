@@ -10,8 +10,10 @@ let cache_dir = path.resolve('.ease_cache');
 
 const get_cache = () => new Cache({dir: cache_dir});
 
-const get_deps = dir => find(dir)
-  .filter(file => /package\.json$/.test(file))
+const get_packages = dir => find(dir)
+  .filter(file => /package\.json$/.test(file));
+
+const get_ease_deps = dir => get_packages(dir)
   .reduce((agg, file) => {
     let dir = path.dirname(file);
     let dep = path.basename(dir);
@@ -22,17 +24,52 @@ const get_deps = dir => find(dir)
     return agg;
   }, {});
 
-let dep_dir = path.resolve(__dirname, '../node_modules');
+let ease_dep_dir = path.resolve(__dirname, '../node_modules');
+
 const cache = get_cache();
 
-let deps = null;
+let ease_deps = null;
 try {
-  deps = cache.get('.deps');
+  ease_deps = cache.get('.ease_deps');
 }
 catch (err) {
-  deps = get_deps(dep_dir);
-  cache.put('.deps', deps);
+  ease_deps = get_ease_deps(ease_dep_dir);
+  cache.put('.ease_deps', ease_deps);
 }
+
+let project_package = '';
+try {
+  project_package = fs.readFileSync('package.json');
+}
+catch (err) {
+
+}
+
+let project_dep_trie = null;
+const project_deps_key = `${cache.hash(project_package)}.deps`;
+try {
+  project_dep_trie = cache.get(project_deps_key);
+}
+catch (err) {
+  let project_dep_trie = get_packages(process.cwd())
+    .map(dep => dep.split('/'))
+    .reduce((agg, parts) => _.set(agg, parts, {}), {}); 
+  cache.put(project_deps_key, project_dep_trie);
+}
+
+let matching_prefixes_impl = (node, path, curr = [], results = []) => {
+  let next = path.shift();
+  if (next === undefined) return results;
+
+  let lookup = node[next];
+  curr = curr.concat(next);
+  return lookup ?
+    matching_prefixes_impl(lookup, path, curr, lookup['package.json'] ? 
+      results.concat([curr.join('/'), curr.concat('node_modules').join('/')]): results) :
+    results;
+};
+
+let matching_prefixes = path => matching_prefixes_impl(project_dep_trie, path.split('/')).reverse();
 
 const formatter = (percentage, message) => {
   process.stdout.clearLine();
@@ -109,7 +146,19 @@ let standard_transformer = (content, filename) => content;
 
 let standard_transformer_filter = filename => filename.indexOf('node_modules') === -1;
 
-let standard_resolver = (request, parent) => deps[request] ? deps[request] : request;
+let standard_resolver = (request, parent) => {
+  if (ease_deps[request]) return {request: ease_deps[request]};
+  if (!parent.id.startsWith(process.cwd())) return {request, parent};
+
+  const prefixes = matching_prefixes(parent.id);
+  console.log(parent.id, request);
+  console.log(prefixes);
+  parent.paths = prefixes;
+  return {
+    parent,
+    request
+  };
+}
 
 let config = {};
 

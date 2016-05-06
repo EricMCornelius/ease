@@ -5,9 +5,9 @@ let _compile = module.prototype._compile;
 let _resolve = module._resolveFilename;
 
 export default (transformer, resolver) => {
-  module._resolveFilename = function(request, parent) {
-    request = resolver(request, parent);
-    return _resolve(request, parent);
+  module._resolveFilename = function(request_, parent_) {
+    let {request, parent} = resolver(request_, parent_);
+    return _resolve(request || request_, parent || parent_);
   }
 
   module.prototype._compile = function(content, filename) {

@@ -35,11 +35,15 @@ var get_cache = function get_cache() {
   return new _cache2.default({ dir: cache_dir });
 };
 
-var get_deps = function get_deps(dir) {
+var get_packages = function get_packages(dir) {
   return (0, _shelljs.find)(dir).filter(function (file) {
     return (/package\.json$/.test(file)
     );
-  }).reduce(function (agg, file) {
+  });
+};
+
+var get_ease_deps = function get_ease_deps(dir) {
+  return get_packages(dir).reduce(function (agg, file) {
     var dir = _path2.default.dirname(file);
     var dep = _path2.default.basename(dir);
     if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1) {
@@ -50,16 +54,51 @@ var get_deps = function get_deps(dir) {
   }, {});
 };
 
-var dep_dir = _path2.default.resolve(__dirname, '../node_modules');
+var ease_dep_dir = _path2.default.resolve(__dirname, '../node_modules');
+
 var cache = get_cache();
 
-var deps = null;
+var ease_deps = null;
 try {
-  deps = cache.get('.deps');
+  ease_deps = cache.get('.ease_deps');
 } catch (err) {
-  deps = get_deps(dep_dir);
-  cache.put('.deps', deps);
+  ease_deps = get_ease_deps(ease_dep_dir);
+  cache.put('.ease_deps', ease_deps);
 }
+
+var project_package = '';
+try {
+  project_package = _fs2.default.readFileSync('package.json');
+} catch (err) {}
+
+var project_dep_trie = null;
+var project_deps_key = cache.hash(project_package) + '.deps';
+try {
+  project_dep_trie = cache.get(project_deps_key);
+} catch (err) {
+  var _project_dep_trie = get_packages(process.cwd()).map(function (dep) {
+    return dep.split('/');
+  }).reduce(function (agg, parts) {
+    return _lodash2.default.set(agg, parts, {});
+  }, {});
+  cache.put(project_deps_key, _project_dep_trie);
+}
+
+var matching_prefixes_impl = function matching_prefixes_impl(node, path) {
+  var curr = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
+  var results = arguments.length <= 3 || arguments[3] === undefined ? [] : arguments[3];
+
+  var next = path.shift();
+  if (next === undefined) return results;
+
+  var lookup = node[next];
+  curr = curr.concat(next);
+  return lookup ? matching_prefixes_impl(lookup, path, curr, lookup['package.json'] ? results.concat([curr.join('/'), curr.concat('node_modules').join('/')]) : results) : results;
+};
+
+var matching_prefixes = function matching_prefixes(path) {
+  return matching_prefixes_impl(project_dep_trie, path.split('/')).reverse();
+};
 
 var formatter = function formatter(percentage, message) {
   process.stdout.clearLine();
@@ -139,7 +178,17 @@ var standard_transformer_filter = function standard_transformer_filter(filename)
 };
 
 var standard_resolver = function standard_resolver(request, parent) {
-  return deps[request] ? deps[request] : request;
+  if (ease_deps[request]) return { request: ease_deps[request] };
+  if (!parent.id.startsWith(process.cwd())) return { request: request, parent: parent };
+
+  var prefixes = matching_prefixes(parent.id);
+  console.log(parent.id, request);
+  console.log(prefixes);
+  parent.paths = prefixes;
+  return {
+    parent: parent,
+    request: request
+  };
 };
 
 var config = {};
