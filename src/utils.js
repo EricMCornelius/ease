@@ -17,7 +17,7 @@ const get_ease_deps = dir => get_packages(dir)
   .reduce((agg, file) => {
     let dir = path.dirname(file);
     let dep = path.basename(dir);
-    if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1) {
+    if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1 && dep.indexOf('source-map-support') === -1) {
       return agg;
     }
     agg[dep] = dir;

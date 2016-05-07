@@ -21,7 +21,8 @@
   },
   "homepage": "https://github.com/ericmcornelius/ease#readme",
   "dependencies": {
-    "node-sass": "^3.7.0"
+    "node-sass": "^3.7.0",
+    "source-map-support": "^0.4.0"
   },
   "devDependencies": {
     "babel-core": "^6.8.0",
