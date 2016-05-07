@@ -54,4 +54,6 @@ var transformer = function transformer(content, filename) {
 
 (0, _module_patch2.default)(transformer, _utils.standard_resolver);
 
+process.argv = process.argv.slice(1);
+
 require(entry);
