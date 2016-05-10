@@ -74,9 +74,15 @@ let matching_prefixes_impl = (node, path, curr = [], results = []) => {
 let matching_prefixes = path => matching_prefixes_impl(project_dep_trie, path.split('/')).reverse();
 
 const formatter = (percentage, message) => {
-  process.stdout.clearLine();
-  process.stdout.cursorTo(0);
-  process.stdout.write(`${(100.0 * percentage).toFixed(1)}%: ${message}`);
+  const formatted = `${(100.0 * percentage).toFixed(1)}%: ${message}`;
+  if (_.isFunction(process.stdout.clearLine)) {
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
+    process.stdout.write(formatted);
+  }
+  else {
+    console.log(formatted);
+  }
 };
 
 let babel_opts = {};

@@ -104,9 +104,14 @@ var matching_prefixes = function matching_prefixes(path) {
 };
 
 var formatter = function formatter(percentage, message) {
-  process.stdout.clearLine();
-  process.stdout.cursorTo(0);
-  process.stdout.write((100.0 * percentage).toFixed(1) + '%: ' + message);
+  var formatted = (100.0 * percentage).toFixed(1) + '%: ' + message;
+  if (_lodash2.default.isFunction(process.stdout.clearLine)) {
+    process.stdout.clearLine();
+    process.stdout.cursorTo(0);
+    process.stdout.write(formatted);
+  } else {
+    console.log(formatted);
+  }
 };
 
 var babel_opts = {};
