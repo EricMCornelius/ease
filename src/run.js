@@ -37,6 +37,4 @@ let transformer = (content, filename) => {
 
 patcher(transformer, standard_resolver);
 
-process.argv = process.argv.slice(1);
-
 require(entry);

@@ -188,7 +188,6 @@ var is_directory = function is_directory(filename) {
 };
 
 var entry = _path2.default.resolve(process.argv[2]);
-process.argv = process.argv.slice(1);
 
 if (is_directory(entry)) {
   var files = (0, _shelljs.find)(entry).filter(function (arg) {
@@ -201,5 +200,5 @@ if (is_directory(entry)) {
   });
   __tests__.run();
 } else {
-  require(process.argv[2]);
+  require(entry);
 }

@@ -148,7 +148,6 @@ const is_directory = filename => {
 }
 
 let entry = path.resolve(process.argv[2]);
-process.argv = process.argv.slice(1);
 
 if (is_directory(entry)) {
   let files = find(entry).filter(arg => /\.js$/.test(arg)).sort();
@@ -159,5 +158,5 @@ if (is_directory(entry)) {
   __tests__.run();
 }
 else  {
-  require(process.argv[2]);
+  require(entry);
 }
