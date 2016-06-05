@@ -46,7 +46,7 @@ var get_ease_deps = function get_ease_deps(dir) {
   return get_packages(dir).reduce(function (agg, file) {
     var dir = _path2.default.dirname(file);
     var dep = _path2.default.basename(dir);
-    if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1) {
+    if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1 && dep.indexOf('source-map-support') === -1) {
       return agg;
     }
     agg[dep] = dir;
