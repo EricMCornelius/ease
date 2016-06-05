@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _setpath = require('./setpath');
@@ -53,11 +55,34 @@ var _babelPolyfill = require('babel-polyfill');
 
 var _babelPolyfill2 = _interopRequireDefault(_babelPolyfill);
 
+var _sourceMapSupport = require('source-map-support');
+
+var _sourceMapSupport2 = _interopRequireDefault(_sourceMapSupport);
+
 var _eslintPluginBabel = require('eslint-plugin-babel');
 
 var _eslintPluginBabel2 = _interopRequireDefault(_eslintPluginBabel);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var sourcemap_cache = {};
+
+_sourceMapSupport2.default.install({
+  environment: 'node',
+  retrieveSourceMap: function retrieveSourceMap(source) {
+    _utils.log.debug('Checking sourcemap for source: ' + source);
+    var sourcemap = sourcemap_cache[source];
+    if (!sourcemap) {
+      return null;
+    }
+    _utils.log.debug('Retrieving sourcemap ' + sourcemap);
+
+    return {
+      url: source,
+      map: _utils.cache.get(sourcemap)
+    };
+  }
+});
 
 global.__tests__ = new _mocha2.default({
   timeout: 20000,
@@ -115,32 +140,35 @@ process.on('beforeExit', function () {
 });
 
 var transformer = function transformer(content, filename) {
+  _utils.log.debug('Processing file: ' + filename);
   if (filename.endsWith('.css') || filename.endsWith('.scss')) {
+    _utils.log.debug('Skipping style file: ' + filename);
     return '';
   }
 
   if (filename.endsWith('.yaml')) {
+    _utils.log.debug('Transforming yaml file: ' + filename);
     return 'module.exports = ' + JSON.stringify(_jsYaml2.default.load(content));
   }
 
   if (filename.endsWith('.json')) {
+    _utils.log.debug('Loading json file: ' + filename);
     return content;
   }
 
   if (!(0, _utils.standard_transformer_filter)(filename)) {
+    _utils.log.debug('Ignoring filtered file: ' + filename);
     return content;
   }
+  _utils.log.debug('Transforming file: ' + filename);
 
-  var code = _fs2.default.readFileSync(filename).toString();
-  _utils.babel_opts.filename = filename;
-
-  var key = _utils.cache.hash(code);
+  var key = _utils.cache.hash(content);
 
   var lint = {};
   try {
     lint = _utils.cache.get(key + '.lint');
   } catch (err) {
-    var results = _eslint.linter.verify(code, _utils.eslint_opts, filename);
+    var results = _eslint.linter.verify(content, _utils.eslint_opts, filename);
 
     var _results$reduce = results.reduce(function (agg, result) {
       agg[result.severity - 1]++;
@@ -166,15 +194,22 @@ var transformer = function transformer(content, filename) {
   __linting__.errorCount += lint.errors;
   __linting__.warningCount += lint.warnings;
 
-  var transpiled = null;
   try {
-    transpiled = _utils.cache.get(key + '.transpiled');
-  } catch (err) {
-    transpiled = (0, _babelCore.transform)(code, _utils.babel_opts).code;
-    _utils.cache.put(key + '.transpiled', transpiled);
-  }
+    sourcemap_cache[filename] = key + '.map';
+    var cached = _utils.cache.get(key + '.code');
+    _utils.log.debug('Retrieving cached transformed file: ' + (key + '.code'));
+    return cached;
+  } catch (err) {}
 
-  return transpiled;
+  _utils.babel_opts.filename = filename;
+
+  var transpiled = (0, _babelCore.transform)(content, _extends({}, _utils.babel_opts, { sourceMaps: true }));
+  _utils.cache.put(key + '.map', transpiled.map);
+  var source_map = _path2.default.resolve(process.cwd(), '.ease_cache', key + '.map');
+
+  var transpiled_code = transpiled.code + '\n//# sourceMappingURL=' + source_map;
+  _utils.cache.put(key + '.code', transpiled_code);
+  return transpiled_code;
 };
 
 (0, _module_patch2.default)(transformer, _utils.standard_resolver);

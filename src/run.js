@@ -17,8 +17,11 @@ const sourcemap_cache = {};
 sourcemaps.install({
   environment: 'node',
   retrieveSourceMap(source) {
+    log.debug(`Checking sourcemap for source: ${source}`);
     let sourcemap = sourcemap_cache[source];
     if (!sourcemap) { return null; }
+    log.debug(`Retrieving sourcemap ${sourcemap}`);
+
     return {
       url: source,
       map: cache.get(sourcemap)
@@ -31,25 +34,29 @@ let entry = path.resolve(process.argv[2]);
 let transformer = (content, filename) => {
   log.debug(`Processing file: ${filename}`);
   if (!standard_transformer_filter(filename)) {
+    log.debug(`Ignoring filtered file: ${filename}`);
     return content;
   }
+  log.debug(`Transforming file: ${filename}`);
 
   let key = cache.hash(content);
   try {
     sourcemap_cache[filename] = key + '.map';
-    return cache.get(key + '.code');
+    let cached = cache.get(key + '.code');
+    log.debug(`Retrieving cached transformed file: ${key + '.code'}`);
+    return cached;
   }
   catch(err) {
-    console.log(err);
+
   }
 
-  let code = fs.readFileSync(filename).toString();
   babel_opts.filename = filename;
 
-  let transpiled = transform(code, {...babel_opts, sourceMaps: 'both'});
+  let transpiled = transform(content, {...babel_opts, sourceMaps: true});
   cache.put(key + '.map', transpiled.map);
   let source_map = path.resolve(process.cwd(), '.ease_cache', key + '.map');
-  let transpiled_code = `//# sourceMappingURL=${source_map}\n${transpiled.code}`;
+  
+  let transpiled_code = `${transpiled.code}\n//# sourceMappingURL=${source_map}`;
   cache.put(key + '.code', transpiled_code);
   return transpiled_code;
 };

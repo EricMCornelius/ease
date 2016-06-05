@@ -1,4 +1,4 @@
-#!/usr/bin/env ease-run
+#!./bin/run.js
 
 import fs from 'fs';
 

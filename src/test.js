@@ -18,7 +18,25 @@ import mocha from 'mocha';
 import jv from 'junit-viewer';
 
 import polyfill from 'babel-polyfill';
+import sourcemaps from 'source-map-support';
 import plugin from 'eslint-plugin-babel';
+
+const sourcemap_cache = {};
+
+sourcemaps.install({
+  environment: 'node',
+  retrieveSourceMap(source) {
+    log.debug(`Checking sourcemap for source: ${source}`);
+    let sourcemap = sourcemap_cache[source];
+    if (!sourcemap) { return null; }
+    log.debug(`Retrieving sourcemap ${sourcemap}`);
+
+    return {
+      url: source,
+      map: cache.get(sourcemap)
+    };
+  }
+});
 
 global.__tests__ = new mocha({
   timeout: 20000,
@@ -76,33 +94,36 @@ process.on('beforeExit', () => {
 });
 
 let transformer = (content, filename) => {
+  log.debug(`Processing file: ${filename}`);
   if (filename.endsWith('.css') || filename.endsWith('.scss')) {
+    log.debug(`Skipping style file: ${filename}`);
     return '';
   }
 
   if (filename.endsWith('.yaml')) {
+    log.debug(`Transforming yaml file: ${filename}`);
     return `module.exports = ${JSON.stringify(yaml.load(content))}`;
   }
 
   if (filename.endsWith('.json')) {
+    log.debug(`Loading json file: ${filename}`);
     return content;
   }
 
   if (!standard_transformer_filter(filename)) {
+    log.debug(`Ignoring filtered file: ${filename}`);
     return content;
   }
+  log.debug(`Transforming file: ${filename}`);
 
-  let code = fs.readFileSync(filename).toString();
-  babel_opts.filename = filename;
-
-  let key = cache.hash(code);
+  let key = cache.hash(content);
 
   let lint = {};
   try {
     lint = cache.get(key + '.lint');
   }
   catch(err) {
-    let results = linter.verify(code, eslint_opts, filename);
+    let results = linter.verify(content, eslint_opts, filename);
     let [errors, warnings] = results.reduce(
       (agg, result) => {
         agg[result.severity - 1]++;
@@ -124,16 +145,25 @@ let transformer = (content, filename) => {
   __linting__.errorCount += lint.errors;
   __linting__.warningCount += lint.warnings;
 
-  let transpiled = null;
   try {
-    transpiled = cache.get(key + '.transpiled');
+    sourcemap_cache[filename] = key + '.map';
+    let cached = cache.get(key + '.code');
+    log.debug(`Retrieving cached transformed file: ${key + '.code'}`);
+    return cached;
   }
   catch(err) {
-    transpiled = transform(code, babel_opts).code;
-    cache.put(key + '.transpiled', transpiled);
+
   }
 
-  return transpiled;
+  babel_opts.filename = filename;
+
+  let transpiled = transform(content, {...babel_opts, sourceMaps: true});
+  cache.put(key + '.map', transpiled.map);
+  let source_map = path.resolve(process.cwd(), '.ease_cache', key + '.map');
+
+  let transpiled_code = `${transpiled.code}\n//# sourceMappingURL=${source_map}`;
+  cache.put(key + '.code', transpiled_code);
+  return transpiled_code;
 };
 
 patcher(transformer, standard_resolver);

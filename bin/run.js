@@ -42,10 +42,13 @@ var sourcemap_cache = {};
 _sourceMapSupport2.default.install({
   environment: 'node',
   retrieveSourceMap: function retrieveSourceMap(source) {
+    _utils.log.debug('Checking sourcemap for source: ' + source);
     var sourcemap = sourcemap_cache[source];
     if (!sourcemap) {
       return null;
     }
+    _utils.log.debug('Retrieving sourcemap ' + sourcemap);
+
     return {
       url: source,
       map: _utils.cache.get(sourcemap)
@@ -58,24 +61,26 @@ var entry = _path2.default.resolve(process.argv[2]);
 var transformer = function transformer(content, filename) {
   _utils.log.debug('Processing file: ' + filename);
   if (!(0, _utils.standard_transformer_filter)(filename)) {
+    _utils.log.debug('Ignoring filtered file: ' + filename);
     return content;
   }
+  _utils.log.debug('Transforming file: ' + filename);
 
   var key = _utils.cache.hash(content);
   try {
     sourcemap_cache[filename] = key + '.map';
-    return _utils.cache.get(key + '.code');
-  } catch (err) {
-    console.log(err);
-  }
+    var cached = _utils.cache.get(key + '.code');
+    _utils.log.debug('Retrieving cached transformed file: ' + (key + '.code'));
+    return cached;
+  } catch (err) {}
 
-  var code = _fs2.default.readFileSync(filename).toString();
   _utils.babel_opts.filename = filename;
 
-  var transpiled = (0, _babelCore.transform)(code, _extends({}, _utils.babel_opts, { sourceMaps: 'both' }));
+  var transpiled = (0, _babelCore.transform)(content, _extends({}, _utils.babel_opts, { sourceMaps: true }));
   _utils.cache.put(key + '.map', transpiled.map);
   var source_map = _path2.default.resolve(process.cwd(), '.ease_cache', key + '.map');
-  var transpiled_code = '//# sourceMappingURL=' + source_map + '\n' + transpiled.code;
+
+  var transpiled_code = transpiled.code + '\n//# sourceMappingURL=' + source_map;
   _utils.cache.put(key + '.code', transpiled_code);
   return transpiled_code;
 };
