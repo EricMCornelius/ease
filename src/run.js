@@ -46,7 +46,7 @@ let transformer = (content, filename) => {
   let code = fs.readFileSync(filename).toString();
   babel_opts.filename = filename;
 
-  let transpiled = transform(code, {...babel_opts, sourceMaps: true});
+  let transpiled = transform(code, {...babel_opts, sourceMaps: 'both'});
   cache.put(key + '.map', transpiled.map);
   let source_map = path.resolve(process.cwd(), '.ease_cache', key + '.map');
   let transpiled_code = `//# sourceMappingURL=${source_map}\n${transpiled.code}`;

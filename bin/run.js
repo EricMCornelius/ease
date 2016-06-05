@@ -72,7 +72,7 @@ var transformer = function transformer(content, filename) {
   var code = _fs2.default.readFileSync(filename).toString();
   _utils.babel_opts.filename = filename;
 
-  var transpiled = (0, _babelCore.transform)(code, _extends({}, _utils.babel_opts, { sourceMaps: true }));
+  var transpiled = (0, _babelCore.transform)(code, _extends({}, _utils.babel_opts, { sourceMaps: 'both' }));
   _utils.cache.put(key + '.map', transpiled.map);
   var source_map = _path2.default.resolve(process.cwd(), '.ease_cache', key + '.map');
   var transpiled_code = '//# sourceMappingURL=' + source_map + '\n' + transpiled.code;
