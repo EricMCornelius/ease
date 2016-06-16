@@ -7,6 +7,7 @@ import fs from 'fs';
 import module from 'module';
 import patcher from './module_patch';
 import {babel_opts, standard_resolver, standard_transformer_filter, log, cache} from './utils';
+import yaml from 'js-yaml';
 
 import {transform} from 'babel-core';
 import polyfill from 'babel-polyfill';
@@ -37,6 +38,17 @@ let transformer = (content, filename) => {
     log.debug(`Ignoring filtered file: ${filename}`);
     return content;
   }
+
+  if (filename.endsWith('.css') || filename.endsWith('.scss')) {
+    log.debug(`Skipping style file: ${filename}`);
+    return '';
+  }
+
+  if (filename.endsWith('.json')) {
+    log.debug(`Loading json file: ${filename}`);
+    return content;
+  }
+
   log.debug(`Transforming file: ${filename}`);
 
   let key = cache.hash(content);
@@ -48,6 +60,14 @@ let transformer = (content, filename) => {
   }
   catch(err) {
 
+  }
+
+  // yaml transformation
+  if (filename.endsWith('.yaml')) {
+    log.debug(`Transforming yaml file: ${filename}`);
+    const transformed = `module.exports = ${JSON.stringify(yaml.load(content))}`;
+    cache.put(key + '.code', transformed);
+    return transformed;
   }
 
   babel_opts.filename = filename;

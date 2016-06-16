@@ -25,6 +25,10 @@ var _module_patch2 = _interopRequireDefault(_module_patch);
 
 var _utils = require('./utils');
 
+var _jsYaml = require('js-yaml');
+
+var _jsYaml2 = _interopRequireDefault(_jsYaml);
+
 var _babelCore = require('babel-core');
 
 var _babelPolyfill = require('babel-polyfill');
@@ -64,6 +68,17 @@ var transformer = function transformer(content, filename) {
     _utils.log.debug('Ignoring filtered file: ' + filename);
     return content;
   }
+
+  if (filename.endsWith('.css') || filename.endsWith('.scss')) {
+    _utils.log.debug('Skipping style file: ' + filename);
+    return '';
+  }
+
+  if (filename.endsWith('.json')) {
+    _utils.log.debug('Loading json file: ' + filename);
+    return content;
+  }
+
   _utils.log.debug('Transforming file: ' + filename);
 
   var key = _utils.cache.hash(content);
@@ -73,6 +88,14 @@ var transformer = function transformer(content, filename) {
     _utils.log.debug('Retrieving cached transformed file: ' + (key + '.code'));
     return cached;
   } catch (err) {}
+
+  // yaml transformation
+  if (filename.endsWith('.yaml')) {
+    _utils.log.debug('Transforming yaml file: ' + filename);
+    var transformed = 'module.exports = ' + JSON.stringify(_jsYaml2.default.load(content));
+    _utils.cache.put(key + '.code', transformed);
+    return transformed;
+  }
 
   _utils.babel_opts.filename = filename;
 
