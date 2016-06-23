@@ -84,15 +84,7 @@ _sourceMapSupport2.default.install({
   }
 });
 
-global.__tests__ = new _mocha2.default({
-  timeout: 20000,
-  reporter: 'mocha-jenkins-reporter',
-  reporterOptions: {
-    junit_report_name: 'tests',
-    junit_report_path: 'reports/tests/report.xml',
-    junit_report_stack: 1
-  }
-});
+global.__tests__ = new _mocha2.default(_utils.mocha_opts);
 global.__coverage__ = {};
 global.__linting__ = {
   results: [],

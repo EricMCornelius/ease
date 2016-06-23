@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.log = exports.cache = exports.standard_resolver = exports.standard_transformer_filter = exports.standard_transformer = exports.eslint_opts = exports.babel_opts = exports.formatter = undefined;
+exports.log = exports.cache = exports.standard_resolver = exports.standard_transformer_filter = exports.standard_transformer = exports.mocha_opts = exports.eslint_opts = exports.babel_opts = exports.formatter = undefined;
 
 var _fs = require('fs');
 
@@ -121,6 +121,17 @@ var babel_default_opts = {
   plugins: ['syntax-decorators', 'transform-decorators-legacy']
 };
 
+var mocha_opts = {};
+var mocha_default_opts = {
+  timeout: 20000,
+  reporter: 'mocha-jenkins-reporter',
+  reporterOptions: {
+    junit_report_name: 'tests',
+    junit_report_path: 'reports/tests/report.xml',
+    junit_report_stack: 1
+  }
+};
+
 var eslint_opts = {};
 var eslint_default_opts = {
   'parser': 'babel-eslint',
@@ -206,6 +217,7 @@ try {
   var _config = require(config_file);
   _lodash2.default.defaultsDeep(eslint_opts, _config.eslint, eslint_default_opts);
   _lodash2.default.defaultsDeep(babel_opts, _config.babel, babel_default_opts);
+  _lodash2.default.defaultsDeep(mocha_opts, _config.mocha, mocha_default_opts);
 
   if (_config.transform_filter) {
     exports.standard_transformer_filter = standard_transformer_filter = _config.transform_filter;
@@ -222,6 +234,7 @@ try {
 exports.formatter = formatter;
 exports.babel_opts = babel_opts;
 exports.eslint_opts = eslint_opts;
+exports.mocha_opts = mocha_opts;
 exports.standard_transformer = standard_transformer;
 exports.standard_transformer_filter = standard_transformer_filter;
 exports.standard_resolver = standard_resolver;

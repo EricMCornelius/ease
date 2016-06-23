@@ -9,7 +9,7 @@ import patcher from './module_patch';
 import {find} from 'shelljs';
 import mkdirp from 'mkdirp';
 import yaml from 'js-yaml';
-import {babel_opts, eslint_opts, standard_resolver, standard_transformer_filter, log, cache} from './utils';
+import {babel_opts, mocha_opts, eslint_opts, standard_resolver, standard_transformer_filter, log, cache} from './utils';
 
 import {Collector, Reporter} from 'istanbul';
 import {transform} from 'babel-core';
@@ -38,15 +38,7 @@ sourcemaps.install({
   }
 });
 
-global.__tests__ = new mocha({
-  timeout: 20000,
-  reporter: 'mocha-jenkins-reporter',
-  reporterOptions: {
-    junit_report_name: 'tests',
-    junit_report_path: 'reports/tests/report.xml',
-    junit_report_stack: 1
-  }
-});
+global.__tests__ = new mocha(mocha_opts);
 global.__coverage__ = {};
 global.__linting__ = {
   results: [],

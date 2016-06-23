@@ -92,6 +92,17 @@ const babel_default_opts = {
   plugins: ['syntax-decorators', 'transform-decorators-legacy']
 };
 
+let mocha_opts = {};
+const mocha_default_opts = {
+  timeout: 20000,
+  reporter: 'mocha-jenkins-reporter',
+  reporterOptions: {
+    junit_report_name: 'tests',
+    junit_report_path: 'reports/tests/report.xml',
+    junit_report_stack: 1
+  }
+};
+
 let eslint_opts = {};
 const eslint_default_opts = {
   'parser': 'babel-eslint',
@@ -175,6 +186,7 @@ try {
   const config = require(config_file);
   _.defaultsDeep(eslint_opts, config.eslint, eslint_default_opts);
   _.defaultsDeep(babel_opts, config.babel, babel_default_opts);
+  _.defaultsDeep(mocha_opts, config.mocha, mocha_default_opts);
 
   if (config.transform_filter) {
     standard_transformer_filter = config.transform_filter;
@@ -193,6 +205,7 @@ export {
   formatter,
   babel_opts,
   eslint_opts,
+  mocha_opts,
   standard_transformer,
   standard_transformer_filter,
   standard_resolver,
