@@ -133,6 +133,7 @@ var mocha_default_opts = {
 };
 
 var eslint_opts = {};
+
 var eslint_default_opts = {
   'parser': 'babel-eslint',
   'env': {
@@ -188,6 +189,12 @@ var eslint_default_opts = {
   'plugins': ['babel']
 };
 
+// set the default opts to the .eslintrc contents if they exist, otherwise use ease defaults
+try {
+  var root_eslint_file = _path2.default.resolve(process.cwd(), '.eslintrc');
+  eslint_default_opts = JSON.parse(_fs2.default.readFileSync(root_eslint_file));
+} catch (err) {}
+
 var standard_transformer = function standard_transformer(content, filename) {
   return content;
 };
@@ -212,6 +219,7 @@ var standard_resolver = function standard_resolver(request, parent) {
 
 var config = {};
 
+// merge config from the .ease_config file
 try {
   var config_file = _path2.default.resolve(process.cwd(), '.ease_config');
   var _config = require(config_file);

@@ -230,4 +230,3 @@ if (is_directory(entry)) {
 } else {
   require(entry);
 }
-

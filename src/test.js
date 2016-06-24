@@ -170,7 +170,7 @@ const is_directory = filename => {
 }
 
 let entry = path.resolve(process.argv[2]);
-let file_filter = process.argv[3]?new RegExp(process.argv[3]):/\.js$/
+let file_filter = process.argv[3] ? new RegExp(process.argv[3]):/\.js$/;
 process.argv = process.argv.slice(1);
 
 if (is_directory(entry)) {

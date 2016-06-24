@@ -104,7 +104,8 @@ const mocha_default_opts = {
 };
 
 let eslint_opts = {};
-const eslint_default_opts = {
+
+let eslint_default_opts = {
   'parser': 'babel-eslint',
   'env': {
     'node': true
@@ -161,6 +162,15 @@ const eslint_default_opts = {
   ]
 };
 
+// set the default opts to the .eslintrc contents if they exist, otherwise use ease defaults
+try {
+  const root_eslint_file = path.resolve(process.cwd(), '.eslintrc');
+  eslint_default_opts = JSON.parse(fs.readFileSync(root_eslint_file));
+}
+catch(err) {
+
+}
+
 let standard_transformer = (content, filename) => content;
 
 let standard_transformer_filter = filename => filename.indexOf('node_modules') === -1;
@@ -181,6 +191,7 @@ let standard_resolver = (request, parent) => {
 
 let config = {};
 
+// merge config from the .ease_config file
 try {
   const config_file = path.resolve(process.cwd(), '.ease_config');
   const config = require(config_file);
