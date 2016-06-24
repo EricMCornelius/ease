@@ -170,9 +170,11 @@ const is_directory = filename => {
 }
 
 let entry = path.resolve(process.argv[2]);
+let file_filter = process.argv[3]?new RegExp(process.argv[3]):/\.js$/
+process.argv = process.argv.slice(1);
 
 if (is_directory(entry)) {
-  let files = find(entry).filter(arg => /\.js$/.test(arg)).sort();
+  let files = find(entry).filter(arg => file_filter.test(arg) || arg.indexOf('_hooks.js') > 0).sort();
   files.forEach(file => {
     log.info('Adding test file:', file);
     __tests__.addFile(file);

@@ -215,11 +215,12 @@ var is_directory = function is_directory(filename) {
 };
 
 var entry = _path2.default.resolve(process.argv[2]);
+var file_filter = process.argv[3] ? new RegExp(process.argv[3]) : /\.js$/;
+process.argv = process.argv.slice(1);
 
 if (is_directory(entry)) {
   var files = (0, _shelljs.find)(entry).filter(function (arg) {
-    return (/\.js$/.test(arg)
-    );
+    return file_filter.test(arg) || arg.indexOf('_hooks.js') > 0;
   }).sort();
   files.forEach(function (file) {
     _utils.log.info('Adding test file:', file);
@@ -229,3 +230,4 @@ if (is_directory(entry)) {
 } else {
   require(entry);
 }
+
