@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.log = exports.cache = exports.standard_resolver = exports.standard_transformer_filter = exports.standard_transformer = exports.mocha_opts = exports.eslint_opts = exports.babel_opts = exports.formatter = undefined;
+exports.log = exports.cache = exports.standard_resolver = exports.standard_transformer_filter = exports.standard_transformer = exports.webpack_opts = exports.mocha_opts = exports.eslint_opts = exports.babel_opts = exports.formatter = undefined;
 
 var _fs = require('fs');
 
@@ -195,6 +195,15 @@ try {
   eslint_default_opts = JSON.parse(_fs2.default.readFileSync(root_eslint_file));
 } catch (err) {}
 
+var webpack_opts = {};
+var webpack_default_opts = {};
+
+// set the default opts to the webpack.config.js
+try {
+  var root_webpack_file = _path2.default.resolve(process.cwd(), 'webpack.config.js');
+  webpack_default_opts = require(root_webpack_file);
+} catch (err) {}
+
 var standard_transformer = function standard_transformer(content, filename) {
   return content;
 };
@@ -226,6 +235,7 @@ try {
   _lodash2.default.defaultsDeep(eslint_opts, _config.eslint, eslint_default_opts);
   _lodash2.default.defaultsDeep(babel_opts, _config.babel, babel_default_opts);
   _lodash2.default.defaultsDeep(mocha_opts, _config.mocha, mocha_default_opts);
+  _lodash2.default.defaultsDeep(webpack_opts, _config.webpack, webpack_default_opts);
 
   if (_config.transform_filter) {
     exports.standard_transformer_filter = standard_transformer_filter = _config.transform_filter;
@@ -243,6 +253,7 @@ exports.formatter = formatter;
 exports.babel_opts = babel_opts;
 exports.eslint_opts = eslint_opts;
 exports.mocha_opts = mocha_opts;
+exports.webpack_opts = webpack_opts;
 exports.standard_transformer = standard_transformer;
 exports.standard_transformer_filter = standard_transformer_filter;
 exports.standard_resolver = standard_resolver;

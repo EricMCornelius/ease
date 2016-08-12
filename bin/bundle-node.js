@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 'use strict';
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _setpath = require('./setpath');
 
 var _setpath2 = _interopRequireDefault(_setpath);
@@ -29,7 +33,7 @@ var libname = filename.split('.')[0];
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-(0, _webpack2.default)({
+(0, _webpack2.default)(_lodash2.default.defaultsDeep(_utils.webpack_opts, {
   entry: entry,
   devtool: 'cheap-module-source-map',
   output: {
@@ -42,7 +46,7 @@ var libname = filename.split('.')[0];
     root: _path2.default.resolve(__dirname, '../node_modules')
   },
   resolve: {
-    modulesDirectories: ['node_modules']
+    modulesDirectories: ['node_modules', '.']
   },
   externals: [{
     'external': true
@@ -71,7 +75,7 @@ var libname = filename.split('.')[0];
       loaders: ['raw']
     }]
   }
-}, function (err, stats) {
+}), function (err, stats) {
   if (err) {
     throw err;
   }

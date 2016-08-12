@@ -85,7 +85,7 @@ var webpack_config = (0, _webpack2.default)({
 new _webpackDevServer2.default(webpack_config, {
   publicPath: '/dist',
   hot: true,
-  historyApiFallback: true
+  historyApiFallback: '/dist'
 }).listen(8888, 'localhost', function (err, result) {
   if (err) {
     return console.error(err);

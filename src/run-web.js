@@ -84,7 +84,7 @@ let webpack_config = webpack({
 new webpack_dev_server(webpack_config, {
   publicPath: '/dist',
   hot: true,
-  historyApiFallback: true
+  historyApiFallback: '/dist'
 }).listen(8888, 'localhost', (err, result) => {
   if (err) {
     return console.error(err);

@@ -171,6 +171,18 @@ catch(err) {
 
 }
 
+let webpack_opts = {};
+let webpack_default_opts = {};
+
+// set the default opts to the webpack.config.js
+try {
+  const root_webpack_file = path.resolve(process.cwd(), 'webpack.config.js');
+  webpack_default_opts = require(root_webpack_file);
+}
+catch(err) {
+
+}
+
 let standard_transformer = (content, filename) => content;
 
 let standard_transformer_filter = filename => filename.indexOf('node_modules') === -1;
@@ -198,6 +210,7 @@ try {
   _.defaultsDeep(eslint_opts, config.eslint, eslint_default_opts);
   _.defaultsDeep(babel_opts, config.babel, babel_default_opts);
   _.defaultsDeep(mocha_opts, config.mocha, mocha_default_opts);
+  _.defaultsDeep(webpack_opts, config.webpack, webpack_default_opts);
 
   if (config.transform_filter) {
     standard_transformer_filter = config.transform_filter;
@@ -217,6 +230,7 @@ export {
   babel_opts,
   eslint_opts,
   mocha_opts,
+  webpack_opts,
   standard_transformer,
   standard_transformer_filter,
   standard_resolver,

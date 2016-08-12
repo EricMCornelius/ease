@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 'use strict';
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _setpath = require('./setpath');
 
 var _setpath2 = _interopRequireDefault(_setpath);
@@ -19,6 +23,14 @@ var _module_patch2 = _interopRequireDefault(_module_patch);
 
 var _utils = require('./utils');
 
+var _precss = require('precss');
+
+var _precss2 = _interopRequireDefault(_precss);
+
+var _autoprefixer = require('autoprefixer');
+
+var _autoprefixer2 = _interopRequireDefault(_autoprefixer);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var entry = _path2.default.resolve(process.argv[2]);
@@ -29,7 +41,7 @@ var libname = filename.split('.')[0];
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-(0, _webpack2.default)({
+(0, _webpack2.default)(_lodash2.default.defaultsDeep(_utils.webpack_opts, {
   entry: [_path2.default.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'), entry],
   devtool: 'cheap-module-source-map',
   output: {
@@ -50,6 +62,10 @@ var libname = filename.split('.')[0];
   plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.DefinePlugin({
     'process.env.NODE_ENV': '"production"'
   }), new _webpack2.default.optimize.DedupePlugin(), new _webpack2.default.optimize.UglifyJsPlugin()],
+  postcss: function postcss() {
+    return [_autoprefixer2.default];
+  },
+
   module: {
     loaders: [{
       test: /\.jsx?$/,
@@ -58,7 +74,7 @@ var libname = filename.split('.')[0];
       query: _utils.babel_opts
     }, {
       test: /\.s?css$/,
-      loaders: ['style', 'css', 'sass']
+      loaders: ['style', 'css', 'postcss', 'sass']
     }, {
       test: /\.json$/,
       loaders: ['json']
@@ -70,7 +86,7 @@ var libname = filename.split('.')[0];
       loaders: ['raw']
     }]
   }
-}, function (err, stats) {
+}), function (err, stats) {
   if (err) {
     throw err;
   }
