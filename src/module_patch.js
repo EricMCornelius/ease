@@ -1,13 +1,25 @@
 import module from 'module';
 import path from 'path';
 
-let _compile = module.prototype._compile;
-let _resolve = module._resolveFilename;
+const _compile = module.prototype._compile;
+const _resolve = module._resolveFilename;
 
 export default (transformer, resolver) => {
   module._resolveFilename = function(request_, parent_) {
-    let {request, parent} = resolver(request_, parent_);
-    return _resolve(request || request_, parent || parent_);
+    const {request, parent} = resolver(request_, parent_);
+    try {
+      return _resolve(request || request_, parent || parent_);
+    }
+    catch(err) { }
+    try {
+      return _resolve(path.resolve(request || request_), parent || parent_);
+    }
+    catch(err) { }
+    try {
+      return _resolve(path.resolve(request || request_, 'index.js'), parent || parent_);
+    }
+    catch(err) { }
+    throw new Error(`Unable to resolve import: ${request || request_}`);
   }
 
   module.prototype._compile = function(content, filename) {

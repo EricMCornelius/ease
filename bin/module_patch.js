@@ -24,7 +24,16 @@ exports.default = function (transformer, resolver) {
     var request = _resolver.request;
     var parent = _resolver.parent;
 
-    return _resolve(request || request_, parent || parent_);
+    try {
+      return _resolve(request || request_, parent || parent_);
+    } catch (err) {}
+    try {
+      return _resolve(_path2.default.resolve(request || request_), parent || parent_);
+    } catch (err) {}
+    try {
+      return _resolve(_path2.default.resolve(request || request_, 'index.js'), parent || parent_);
+    } catch (err) {}
+    throw new Error('Unable to resolve import: ' + (request || request_));
   };
 
   _module3.default.prototype._compile = function (content, filename) {
