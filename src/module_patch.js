@@ -19,7 +19,7 @@ export default (transformer, resolver) => {
       return _resolve(path.resolve(request || request_, 'index.js'), parent || parent_);
     }
     catch(err) { }
-    throw new Error(`Unable to resolve import: ${request || request_}`);
+    throw new Error(`Unable to resolve / could not find import: ${request || request_}`);
   }
 
   module.prototype._compile = function(content, filename) {

@@ -33,7 +33,7 @@ exports.default = function (transformer, resolver) {
     try {
       return _resolve(_path2.default.resolve(request || request_, 'index.js'), parent || parent_);
     } catch (err) {}
-    throw new Error('Unable to resolve import: ' + (request || request_));
+    throw new Error('Unable to resolve / could not find import: ' + (request || request_));
   };
 
   _module3.default.prototype._compile = function (content, filename) {
