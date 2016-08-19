@@ -55,6 +55,18 @@ let webpack_config = webpack({
         loader: 'babel',
         query: babel_opts
       },
+      { test: /\.svg$/,
+        loader: 'svg-url-loader'
+      },
+      { test: /\.png$/,
+        loader: 'url-loader?mimetype=image/png'
+      },
+      { test: /\.jpg$/,
+        loader: 'url-loader?mimetype=image/jpg'
+      },
+      { test: /\.gif$/,
+        loader: 'url-loader?mimetype=image/gif'
+      },
       {
         test: /\.s?css$/,
         loaders: ['style', 'css', 'sass']

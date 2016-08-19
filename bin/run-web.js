@@ -60,6 +60,14 @@ var webpack_config = (0, _webpack2.default)({
       include: _utils.standard_transformer_filter,
       loader: 'babel',
       query: _utils.babel_opts
+    }, { test: /\.svg$/,
+      loader: 'svg-url-loader'
+    }, { test: /\.png$/,
+      loader: 'url-loader?mimetype=image/png'
+    }, { test: /\.jpg$/,
+      loader: 'url-loader?mimetype=image/jpg'
+    }, { test: /\.gif$/,
+      loader: 'url-loader?mimetype=image/gif'
     }, {
       test: /\.s?css$/,
       loaders: ['style', 'css', 'sass']
