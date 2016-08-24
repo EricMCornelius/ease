@@ -323,7 +323,6 @@
     "fs-extra",
     "fs-promise",
     "fs.realpath",
-    "fsevents",
     "fstream",
     "gauge",
     "gaze",
