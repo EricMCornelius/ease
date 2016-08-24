@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 import setpath from './setpath';
+import _ from 'lodash';
 
 import webpack from 'webpack';
 import webpack_dev_server from 'webpack-dev-server';
 import path from 'path';
 import patcher from './module_patch';
-import {formatter, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
+import {formatter, webpack_opts, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
 
 let entry = path.resolve(process.argv[2]);
 
@@ -14,7 +15,8 @@ const publicPath = '/dist/bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-let webpack_config = webpack({
+let webpack_config = webpack(
+_.defaultsDeep(webpack_opts, {
   entry: [
     path.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + '?http://localhost:8888',
     path.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'),
@@ -85,7 +87,7 @@ let webpack_config = webpack({
       }
     ]
   }
-}, (err, stats) => {
+}), (err, stats) => {
   if (err) {
     throw err;
   }

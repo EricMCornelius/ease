@@ -47,6 +47,12 @@ _.defaultsDeep(webpack_opts, {
     new webpack.optimize.UglifyJsPlugin()
   ],
   module: {
+    preLoaders: [
+      {
+        test: /\.jsx?$/,
+        loader: 'shebang'
+      }
+    ],
     loaders: [
       {
         test: /\.jsx?$/,
@@ -67,7 +73,7 @@ _.defaultsDeep(webpack_opts, {
         loaders: ['json', 'yaml']
       },
       {
-        test: /\.txt$/,
+        test: /\.txt$|\.pem$|\.crt$|\.key$/,
         loaders: ['raw']
       }
     ]

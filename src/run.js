@@ -70,6 +70,14 @@ let transformer = (content, filename) => {
     return transformed;
   }
 
+  // raw import
+  if (filename.endsWith('.txt') || filename.endsWith('.key') || filename.endsWith('.crt') || filename.endsWith('.pem')) {
+    log.debug(`Transforming raw file: ${filename}`);
+    const transformed = `module.exports = ${JSON.stringify(content.toString())}`;
+    cache.put(key + '.code', transformed);
+    return transformed;
+  }
+
   babel_opts.filename = filename;
 
   let transpiled = transform(content, {...babel_opts, sourceMaps: true});

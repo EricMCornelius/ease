@@ -52,14 +52,36 @@ _.defaultsDeep(webpack_opts, {
   ],
   postcss() {
     return [autoprefixer];
-  }, 
+  },
   module: {
+    preLoaders: [
+      {
+        test: /\.jsx?$/,
+        loader: 'shebang'
+      }
+    ],
     loaders: [
       {
         test: /\.jsx?$/,
         include: standard_transformer_filter,
         loader: 'babel',
         query: babel_opts
+      },
+      {
+        test: /\.svg$/,
+        loader: 'svg-url-loader'
+      },
+      {
+        test: /\.png$/,
+        loader: 'url-loader?mimetype=image/png'
+      },
+      {
+        test: /\.jpg$/,
+        loader: 'url-loader?mimetype=image/jpg'
+      },
+      {
+        test: /\.gif$/,
+        loader: 'url-loader?mimetype=image/gif'
       },
       {
         test: /\.s?css$/,
@@ -74,7 +96,7 @@ _.defaultsDeep(webpack_opts, {
         loaders: ['json', 'yaml']
       },
       {
-        test: /\.txt$/,
+        test: /\.txt$|\.pem$|\.crt$|\.key$/,
         loaders: ['raw']
       }
     ]

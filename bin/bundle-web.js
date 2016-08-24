@@ -67,11 +67,27 @@ var libname = filename.split('.')[0];
   },
 
   module: {
+    preLoaders: [{
+      test: /\.jsx?$/,
+      loader: 'shebang'
+    }],
     loaders: [{
       test: /\.jsx?$/,
       include: _utils.standard_transformer_filter,
       loader: 'babel',
       query: _utils.babel_opts
+    }, {
+      test: /\.svg$/,
+      loader: 'svg-url-loader'
+    }, {
+      test: /\.png$/,
+      loader: 'url-loader?mimetype=image/png'
+    }, {
+      test: /\.jpg$/,
+      loader: 'url-loader?mimetype=image/jpg'
+    }, {
+      test: /\.gif$/,
+      loader: 'url-loader?mimetype=image/gif'
     }, {
       test: /\.s?css$/,
       loaders: ['style', 'css', 'postcss', 'sass']
@@ -82,7 +98,7 @@ var libname = filename.split('.')[0];
       test: /\.yaml$/,
       loaders: ['json', 'yaml']
     }, {
-      test: /\.txt$/,
+      test: /\.txt$|\.pem$|\.crt$|\.key$/,
       loaders: ['raw']
     }]
   }

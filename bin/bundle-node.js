@@ -56,6 +56,10 @@ var libname = filename.split('.')[0];
     'process.env.NODE_ENV': '"production"'
   }), new _webpack2.default.optimize.DedupePlugin(), new _webpack2.default.optimize.UglifyJsPlugin()],
   module: {
+    preLoaders: [{
+      test: /\.jsx?$/,
+      loader: 'shebang'
+    }],
     loaders: [{
       test: /\.jsx?$/,
       include: _utils.standard_transformer_filter,
@@ -71,7 +75,7 @@ var libname = filename.split('.')[0];
       test: /\.yaml$/,
       loaders: ['json', 'yaml']
     }, {
-      test: /\.txt$/,
+      test: /\.txt$|\.pem$|\.crt$|\.key$/,
       loaders: ['raw']
     }]
   }

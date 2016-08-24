@@ -97,6 +97,14 @@ var transformer = function transformer(content, filename) {
     return transformed;
   }
 
+  // raw import
+  if (filename.endsWith('.txt') || filename.endsWith('.key') || filename.endsWith('.crt') || filename.endsWith('.pem')) {
+    _utils.log.debug('Transforming raw file: ' + filename);
+    var _transformed = 'module.exports = ' + JSON.stringify(content.toString());
+    _utils.cache.put(key + '.code', _transformed);
+    return _transformed;
+  }
+
   _utils.babel_opts.filename = filename;
 
   var transpiled = (0, _babelCore.transform)(content, _extends({}, _utils.babel_opts, { sourceMaps: true }));

@@ -97,6 +97,11 @@ let transformer = (content, filename) => {
     return `module.exports = ${JSON.stringify(yaml.load(content))}`;
   }
 
+  if (filename.endsWith('.txt') || filename.endsWith('.key') || filename.endsWith('.crt') || filename.endsWith('.pem')) {
+    log.debug(`Transforming raw file: ${filename}`);
+    return `module.exports = ${JSON.stringify(content.toString())}`;
+  }
+
   if (filename.endsWith('.json')) {
     log.debug(`Loading json file: ${filename}`);
     return content;

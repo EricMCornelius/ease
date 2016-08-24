@@ -143,6 +143,11 @@ var transformer = function transformer(content, filename) {
     return 'module.exports = ' + JSON.stringify(_jsYaml2.default.load(content));
   }
 
+  if (filename.endsWith('.txt') || filename.endsWith('.key') || filename.endsWith('.crt') || filename.endsWith('.pem')) {
+    _utils.log.debug('Transforming raw file: ' + filename);
+    return 'module.exports = ' + JSON.stringify(content.toString());
+  }
+
   if (filename.endsWith('.json')) {
     _utils.log.debug('Loading json file: ' + filename);
     return content;

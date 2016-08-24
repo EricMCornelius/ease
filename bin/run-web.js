@@ -5,6 +5,10 @@ var _setpath = require('./setpath');
 
 var _setpath2 = _interopRequireDefault(_setpath);
 
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
 var _webpack = require('webpack');
 
 var _webpack2 = _interopRequireDefault(_webpack);
@@ -31,7 +35,7 @@ var publicPath = '/dist/bundle';
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-var webpack_config = (0, _webpack2.default)({
+var webpack_config = (0, _webpack2.default)(_lodash2.default.defaultsDeep(_utils.webpack_opts, {
   entry: [_path2.default.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + '?http://localhost:8888', _path2.default.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'), _path2.default.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'), entry],
   output: {
     path: '/dist',
@@ -82,7 +86,7 @@ var webpack_config = (0, _webpack2.default)({
       loaders: ['raw']
     }]
   }
-}, function (err, stats) {
+}), function (err, stats) {
   if (err) {
     throw err;
   }
