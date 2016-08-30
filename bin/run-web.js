@@ -31,16 +31,16 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var entry = _path2.default.resolve(process.argv[2]);
 
-var publicPath = '/dist/bundle';
+var publicPath = '/dist';
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-var webpack_config = (0, _webpack2.default)(_lodash2.default.defaultsDeep(_utils.webpack_opts, {
-  entry: [_path2.default.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + '?http://localhost:8888', _path2.default.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'), _path2.default.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'), entry],
+var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
+  entry: [_path2.default.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + ('?' + (_utils.webpack_opts.reload_url || 'http://localhost:8888')), _path2.default.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'), _path2.default.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'), entry],
   output: {
     path: '/dist',
     filename: 'bundle.js',
-    publicPath: '/dist'
+    publicPath: publicPath
   },
   devtool: 'cheap-module-source-map',
   resolveLoader: {
@@ -64,14 +64,9 @@ var webpack_config = (0, _webpack2.default)(_lodash2.default.defaultsDeep(_utils
       include: _utils.standard_transformer_filter,
       loader: 'babel',
       query: _utils.babel_opts
-    }, { test: /\.svg$/,
-      loader: 'svg-url-loader'
-    }, { test: /\.png$/,
-      loader: 'url-loader?mimetype=image/png'
-    }, { test: /\.jpg$/,
-      loader: 'url-loader?mimetype=image/jpg'
-    }, { test: /\.gif$/,
-      loader: 'url-loader?mimetype=image/gif'
+    }, {
+      test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+      loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]'
     }, {
       test: /\.s?css$/,
       loaders: ['style', 'css', 'sass']
@@ -86,7 +81,11 @@ var webpack_config = (0, _webpack2.default)(_lodash2.default.defaultsDeep(_utils
       loaders: ['raw']
     }]
   }
-}), function (err, stats) {
+});
+
+_utils.webpack_opts.hook && _utils.webpack_opts.hook(webpack_settings);
+
+var webpack_config = (0, _webpack2.default)(webpack_settings, function (err, stats) {
   if (err) {
     throw err;
   }
@@ -95,13 +94,13 @@ var webpack_config = (0, _webpack2.default)(_lodash2.default.defaultsDeep(_utils
 });
 
 new _webpackDevServer2.default(webpack_config, {
-  publicPath: '/dist',
+  publicPath: publicPath,
   hot: true,
-  historyApiFallback: '/dist'
-}).listen(8888, 'localhost', function (err, result) {
+  historyApiFallback: publicPath
+}).listen(_utils.webpack_opts.port || 8888, 'localhost', function (err, result) {
   if (err) {
     return console.error(err);
   }
 
-  console.log('Listening at localhost:8888');
+  console.log('Listening at localhost:' + (_utils.webpack_opts.port || 8888));
 });

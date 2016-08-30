@@ -11,14 +11,13 @@ import {formatter, webpack_opts, babel_opts, standard_transformer, standard_tran
 
 let entry = path.resolve(process.argv[2]);
 
-const publicPath = '/dist/bundle';
+const publicPath = '/dist';
 
 patcher(standard_transformer, standard_resolver);
 
-let webpack_config = webpack(
-_.defaultsDeep(webpack_opts, {
+const webpack_settings = _.defaultsDeep(webpack_opts, {
   entry: [
-    path.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + '?http://localhost:8888',
+    path.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + `?${webpack_opts.reload_url || 'http://localhost:8888'}`,
     path.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'),
     path.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'),
     entry
@@ -26,7 +25,7 @@ _.defaultsDeep(webpack_opts, {
   output: {
     path: '/dist',
     filename: 'bundle.js',
-    publicPath: '/dist'
+    publicPath
   },
   devtool: 'cheap-module-source-map',
   resolveLoader: {
@@ -57,17 +56,9 @@ _.defaultsDeep(webpack_opts, {
         loader: 'babel',
         query: babel_opts
       },
-      { test: /\.svg$/,
-        loader: 'svg-url-loader'
-      },
-      { test: /\.png$/,
-        loader: 'url-loader?mimetype=image/png'
-      },
-      { test: /\.jpg$/,
-        loader: 'url-loader?mimetype=image/jpg'
-      },
-      { test: /\.gif$/,
-        loader: 'url-loader?mimetype=image/gif'
+      {
+        test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+        loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]'
       },
       {
         test: /\.s?css$/,
@@ -87,7 +78,11 @@ _.defaultsDeep(webpack_opts, {
       }
     ]
   }
-}), (err, stats) => {
+});
+
+webpack_opts.hook && webpack_opts.hook(webpack_settings);
+
+let webpack_config = webpack(webpack_settings, (err, stats) => {
   if (err) {
     throw err;
   }
@@ -96,13 +91,13 @@ _.defaultsDeep(webpack_opts, {
 });
 
 new webpack_dev_server(webpack_config, {
-  publicPath: '/dist',
+  publicPath,
   hot: true,
-  historyApiFallback: '/dist'
-}).listen(8888, 'localhost', (err, result) => {
+  historyApiFallback: publicPath
+}).listen(webpack_opts.port || 8888, 'localhost', (err, result) => {
   if (err) {
     return console.error(err);
   }
 
-  console.log(`Listening at localhost:8888`);
+  console.log(`Listening at localhost:${webpack_opts.port || 8888}`);
 });

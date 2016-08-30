@@ -41,7 +41,7 @@ var libname = filename.split('.')[0];
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-(0, _webpack2.default)(_lodash2.default.defaultsDeep(_utils.webpack_opts, {
+var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
   entry: [_path2.default.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'), entry],
   devtool: 'cheap-module-source-map',
   output: {
@@ -77,17 +77,8 @@ var libname = filename.split('.')[0];
       loader: 'babel',
       query: _utils.babel_opts
     }, {
-      test: /\.svg$/,
-      loader: 'svg-url-loader'
-    }, {
-      test: /\.png$/,
-      loader: 'url-loader?mimetype=image/png'
-    }, {
-      test: /\.jpg$/,
-      loader: 'url-loader?mimetype=image/jpg'
-    }, {
-      test: /\.gif$/,
-      loader: 'url-loader?mimetype=image/gif'
+      test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+      loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]'
     }, {
       test: /\.s?css$/,
       loaders: ['style', 'css', 'postcss', 'sass']
@@ -102,7 +93,11 @@ var libname = filename.split('.')[0];
       loaders: ['raw']
     }]
   }
-}), function (err, stats) {
+});
+
+_utils.webpack_opts.hook && _utils.webpack_opts.hook(webpack_settings);
+
+(0, _webpack2.default)(webpack_settings, function (err, stats) {
   if (err) {
     throw err;
   }

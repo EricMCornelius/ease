@@ -18,8 +18,7 @@ let libname = filename.split('.')[0];
 
 patcher(standard_transformer, standard_resolver);
 
-webpack(
-_.defaultsDeep(webpack_opts, {
+const webpack_settings = _.defaultsDeep(webpack_opts, {
   entry: [
     path.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'),
     entry
@@ -68,20 +67,8 @@ _.defaultsDeep(webpack_opts, {
         query: babel_opts
       },
       {
-        test: /\.svg$/,
-        loader: 'svg-url-loader'
-      },
-      {
-        test: /\.png$/,
-        loader: 'url-loader?mimetype=image/png'
-      },
-      {
-        test: /\.jpg$/,
-        loader: 'url-loader?mimetype=image/jpg'
-      },
-      {
-        test: /\.gif$/,
-        loader: 'url-loader?mimetype=image/gif'
+        test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+        loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]'
       },
       {
         test: /\.s?css$/,
@@ -101,7 +88,11 @@ _.defaultsDeep(webpack_opts, {
       }
     ]
   }
-}), (err, stats) => {
+});
+
+webpack_opts.hook && webpack_opts.hook(webpack_settings);
+
+webpack(webpack_settings, (err, stats) => {
   if (err) {
     throw err;
   }
