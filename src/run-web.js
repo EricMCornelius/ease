@@ -19,7 +19,7 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
   entry: [
     path.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + `?${webpack_opts.reload_url || 'http://localhost:8888'}`,
     path.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'),
-    path.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'),
+    path.resolve(__dirname, '../node_modules', 'babel-polyfill/lib'),
     entry
   ],
   output: {

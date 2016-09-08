@@ -36,7 +36,7 @@ var publicPath = '/dist';
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
 var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
-  entry: [_path2.default.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + ('?' + (_utils.webpack_opts.reload_url || 'http://localhost:8888')), _path2.default.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'), _path2.default.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'), entry],
+  entry: [_path2.default.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + ('?' + (_utils.webpack_opts.reload_url || 'http://localhost:8888')), _path2.default.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'), _path2.default.resolve(__dirname, '../node_modules', 'babel-polyfill/lib'), entry],
   output: {
     path: '/dist',
     filename: 'bundle.js',
