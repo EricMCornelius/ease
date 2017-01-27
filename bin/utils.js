@@ -85,8 +85,8 @@ try {
 }
 
 var matching_prefixes_impl = function matching_prefixes_impl(node, path) {
-  var curr = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
-  var results = arguments.length <= 3 || arguments[3] === undefined ? [] : arguments[3];
+  var curr = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+  var results = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
 
   if (path.length === 0) {
     return results;

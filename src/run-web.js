@@ -27,12 +27,12 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
     filename: 'bundle.js',
     publicPath
   },
-  devtool: 'cheap-module-source-map',
+  // devtool: 'cheap-module-source-map',
   resolveLoader: {
-    root: path.resolve(__dirname, '../node_modules')
+    modules: [path.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    moduleDirectories: ['node_modules', 'bower_components']
+    modules: ['node_modules', 'bower_components']
   },
   externals: [
     {
@@ -44,43 +44,48 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
     new webpack.HotModuleReplacementPlugin()
   ],
   module: {
-    loaders: [
-      {
-        test: /\.jsx?$/,
-        include: standard_transformer_filter,
-        loader: 'react-hot'
-      },
-      {
-        test: /\.jsx?$/,
-        include: standard_transformer_filter,
-        loader: 'babel',
-        query: babel_opts
-      },
-      {
-        test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]'
-      },
-      {
-        test: /\.s?css$/,
-        loaders: ['style', 'css', 'sass']
-      },
-      {
-        test: /\.json$/,
-        loaders: ['json']
-      },
-      {
-        test: /\.yaml$/,
-        loaders: ['json', 'yaml']
-      },
-      {
-        test: /\.txt$/,
-        loaders: ['raw']
-      }
-    ]
+    rules: [{
+      enforce: 'pre',
+      test: /\.jsx?$/,
+      include: standard_transformer_filter,
+      loader: 'react-hot-loader/webpack'
+    }, {
+      enforce: 'post',
+      test: /\.jsx?$/,
+      include: standard_transformer_filter,
+      loader: 'babel-loader',
+      query: babel_opts
+    }, {
+      enforce: 'post',
+      test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+      loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]'
+    }, {
+      enforce: 'post',
+      test: /\.s?css$/,
+      use: [
+        'style-loader',
+        { loader: 'css-loader', options: { modules: true, importLoaders: 1 } },
+        { loader: 'postcss-loader', options: { plugins: () => [...plugins] } },
+        'sass-loader'
+      ]
+    }, {
+      enforce: 'post',
+      test: /\.json$/,
+      loaders: ['json-loader']
+    }, {
+      enforce: 'post',
+      test: /\.yaml$/,
+      loaders: ['json-loader', 'yaml-loader']
+    }, {
+      enforce: 'post',
+      test: /\.txt$/,
+      loaders: ['raw-loader']
+    }]
   }
 });
 
-webpack_opts.hook && webpack_opts.hook(webpack_settings);
+webpack_settings.hook && webpack_settings.hook(webpack_settings);
+delete webpack_settings.hook;
 
 let webpack_config = webpack(webpack_settings, (err, stats) => {
   if (err) {
@@ -93,7 +98,7 @@ let webpack_config = webpack(webpack_settings, (err, stats) => {
 new webpack_dev_server(webpack_config, {
   publicPath,
   hot: true,
-  historyApiFallback: publicPath
+  historyApiFallback: true
 }).listen(webpack_opts.port || 8888, 'localhost', (err, result) => {
   if (err) {
     return console.error(err);

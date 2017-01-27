@@ -29,6 +29,8 @@ var _utils = require('./utils');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 var entry = _path2.default.resolve(process.argv[2]);
 
 var publicPath = '/dist';
@@ -42,12 +44,12 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
     filename: 'bundle.js',
     publicPath: publicPath
   },
-  devtool: 'cheap-module-source-map',
+  // devtool: 'cheap-module-source-map',
   resolveLoader: {
-    root: _path2.default.resolve(__dirname, '../node_modules')
+    modules: [_path2.default.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    moduleDirectories: ['node_modules', 'bower_components']
+    modules: ['node_modules', 'bower_components']
   },
   externals: [{
     'external': true,
@@ -55,35 +57,55 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
   }],
   plugins: [new _webpack2.default.HotModuleReplacementPlugin()],
   module: {
-    loaders: [{
+    rules: [{
+      enforce: 'pre',
       test: /\.jsx?$/,
       include: _utils.standard_transformer_filter,
-      loader: 'react-hot'
+      loader: 'react-hot-loader/webpack'
     }, {
+      enforce: 'post',
       test: /\.jsx?$/,
       include: _utils.standard_transformer_filter,
-      loader: 'babel',
+      loader: 'babel-loader',
       query: _utils.babel_opts
     }, {
+      enforce: 'post',
       test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
       loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]'
     }, {
+      enforce: 'post',
       test: /\.s?css$/,
-      loaders: ['style', 'css', 'sass']
+      use: ['style-loader', { loader: 'css-loader', options: { modules: true, importLoaders: 1 } }, { loader: 'postcss-loader', options: { plugins: function (_plugins) {
+            function plugins() {
+              return _plugins.apply(this, arguments);
+            }
+
+            plugins.toString = function () {
+              return _plugins.toString();
+            };
+
+            return plugins;
+          }(function () {
+            return [].concat(_toConsumableArray(plugins));
+          }) } }, 'sass-loader']
     }, {
+      enforce: 'post',
       test: /\.json$/,
-      loaders: ['json']
+      loaders: ['json-loader']
     }, {
+      enforce: 'post',
       test: /\.yaml$/,
-      loaders: ['json', 'yaml']
+      loaders: ['json-loader', 'yaml-loader']
     }, {
+      enforce: 'post',
       test: /\.txt$/,
-      loaders: ['raw']
+      loaders: ['raw-loader']
     }]
   }
 });
 
-_utils.webpack_opts.hook && _utils.webpack_opts.hook(webpack_settings);
+webpack_settings.hook && webpack_settings.hook(webpack_settings);
+delete webpack_settings.hook;
 
 var webpack_config = (0, _webpack2.default)(webpack_settings, function (err, stats) {
   if (err) {
@@ -96,7 +118,7 @@ var webpack_config = (0, _webpack2.default)(webpack_settings, function (err, sta
 new _webpackDevServer2.default(webpack_config, {
   publicPath: publicPath,
   hot: true,
-  historyApiFallback: publicPath
+  historyApiFallback: true
 }).listen(_utils.webpack_opts.port || 8888, 'localhost', function (err, result) {
   if (err) {
     return console.error(err);

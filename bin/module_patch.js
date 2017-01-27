@@ -19,10 +19,9 @@ var _resolve = _module3.default._resolveFilename;
 
 exports.default = function (transformer, resolver) {
   _module3.default._resolveFilename = function (request_, parent_) {
-    var _resolver = resolver(request_, parent_);
-
-    var request = _resolver.request;
-    var parent = _resolver.parent;
+    var _resolver = resolver(request_, parent_),
+        request = _resolver.request,
+        parent = _resolver.parent;
 
     try {
       return _resolve(request || request_, parent || parent_);

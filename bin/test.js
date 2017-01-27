@@ -170,12 +170,10 @@ var transformer = function transformer(content, filename) {
     var _results$reduce = results.reduce(function (agg, result) {
       agg[result.severity - 1]++;
       return agg;
-    }, [0, 0]);
-
-    var _results$reduce2 = _slicedToArray(_results$reduce, 2);
-
-    var errors = _results$reduce2[0];
-    var warnings = _results$reduce2[1];
+    }, [0, 0]),
+        _results$reduce2 = _slicedToArray(_results$reduce, 2),
+        errors = _results$reduce2[0],
+        warnings = _results$reduce2[1];
 
     lint = { errors: errors, warnings: warnings, results: results };
     _utils.cache.put(key + '.lint', lint);

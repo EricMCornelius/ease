@@ -33,7 +33,7 @@ var libname = filename.split('.')[0];
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-(0, _webpack2.default)(_lodash2.default.defaultsDeep(_utils.webpack_opts, {
+var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
   entry: entry,
   devtool: 'cheap-module-source-map',
   output: {
@@ -43,10 +43,10 @@ var libname = filename.split('.')[0];
     libraryTarget: 'commonjs2'
   },
   resolveLoader: {
-    root: _path2.default.resolve(__dirname, '../node_modules')
+    modules: [_path2.default.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    modulesDirectories: ['node_modules', '.']
+    modules: ['node_modules', '.']
   },
   externals: [{
     'external': true
@@ -56,30 +56,40 @@ var libname = filename.split('.')[0];
     'process.env.NODE_ENV': '"production"'
   }), new _webpack2.default.optimize.DedupePlugin(), new _webpack2.default.optimize.UglifyJsPlugin()],
   module: {
-    preLoaders: [{
+    rules: [{
+      enforce: 'pre',
       test: /\.jsx?$/,
-      loader: 'shebang'
-    }],
-    loaders: [{
+      loader: 'shebang-loader'
+    }, {
+      enforce: 'post',
       test: /\.jsx?$/,
       include: _utils.standard_transformer_filter,
-      loader: 'babel',
+      loader: 'babel-loader',
       query: _utils.babel_opts
     }, {
+      enforce: 'post',
       test: /\.s?css$/,
-      loaders: ['style', 'css', 'sass']
+      loaders: ['style-loader', 'css-loader', 'sass-loader']
     }, {
+      enforce: 'post',
       test: /\.json$/,
-      loaders: ['json']
+      loaders: ['json-loader']
     }, {
+      enforce: 'post',
       test: /\.yaml$/,
-      loaders: ['json', 'yaml']
+      loaders: ['json-loader', 'yaml-loader']
     }, {
-      test: /\.txt$|\.pem$|\.crt$|\.key$/,
-      loaders: ['raw']
+      enforce: 'post',
+      test: /\.txt$|\.pem$|\.crt$|\.key$|\.ps1$/,
+      loaders: ['raw-loader']
     }]
   }
-}), function (err, stats) {
+});
+
+webpack_settings.hook && webpack_settings.hook(webpack_settings);
+delete webpack_settings.hook;
+
+(0, _webpack2.default)(webpack_settings, function (err, stats) {
   if (err) {
     throw err;
   }
