@@ -54,7 +54,20 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
   target: 'node',
   plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.DefinePlugin({
     'process.env.NODE_ENV': '"production"'
-  }), new _webpack2.default.optimize.DedupePlugin(), new _webpack2.default.optimize.UglifyJsPlugin()],
+  }), new _webpack2.default.LoaderOptionsPlugin({
+    minimize: true,
+    debug: false
+  }), new _webpack2.default.optimize.UglifyJsPlugin({
+    beautify: false,
+    mangle: {
+      screw_ie8: true,
+      keep_fnames: true
+    },
+    compress: {
+      screw_ie8: true
+    },
+    comments: false
+  })],
   module: {
     rules: [{
       enforce: 'pre',

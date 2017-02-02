@@ -9,7 +9,7 @@ import path from 'path';
 import patcher from './module_patch';
 import {formatter, webpack_opts, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
 
-let entry = path.resolve(process.argv[2]);
+const entry = path.resolve(process.argv[2]);
 
 const publicPath = '/dist';
 
@@ -27,7 +27,7 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
     filename: 'bundle.js',
     publicPath
   },
-  // devtool: 'cheap-module-source-map',
+  devtool: 'cheap-module-source-map',
   resolveLoader: {
     modules: [path.resolve(__dirname, '../node_modules')]
   },
@@ -47,6 +47,10 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
     rules: [{
       enforce: 'pre',
       test: /\.jsx?$/,
+      loader: 'shebang-loader'
+    }, {
+      enforce: 'pre',
+      test: /\.jsx?$/,
       include: standard_transformer_filter,
       loader: 'react-hot-loader/webpack'
     }, {
@@ -64,8 +68,8 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
       test: /\.s?css$/,
       use: [
         'style-loader',
-        { loader: 'css-loader', options: { modules: true, importLoaders: 1 } },
-        { loader: 'postcss-loader', options: { plugins: () => [...plugins] } },
+        'css-loader',
+        'postcss-loader',
         'sass-loader'
       ]
     }, {
@@ -87,7 +91,7 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
 webpack_settings.hook && webpack_settings.hook(webpack_settings);
 delete webpack_settings.hook;
 
-let webpack_config = webpack(webpack_settings, (err, stats) => {
+const webpack_config = webpack(webpack_settings, (err, stats) => {
   if (err) {
     throw err;
   }

@@ -10,11 +10,11 @@ import {formatter, webpack_opts, babel_opts, standard_transformer, standard_tran
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
 
-let entry = path.resolve(process.argv[2]);
-let pathname = path.resolve(process.argv[3]);
-let directory = path.dirname(pathname);
-let filename = path.basename(pathname);
-let libname = filename.split('.')[0];
+const entry = path.resolve(process.argv[2]);
+const pathname = path.resolve(process.argv[3]);
+const directory = path.dirname(pathname);
+const filename = path.basename(pathname);
+const libname = filename.split('.')[0];
 
 patcher(standard_transformer, standard_resolver);
 
@@ -46,8 +46,21 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"production"'
     }),
-    new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.UglifyJsPlugin()
+    new webpack.LoaderOptionsPlugin({
+      minimize: true,
+      debug: false
+    }),
+    new webpack.optimize.UglifyJsPlugin({
+      beautify: false,
+      mangle: {
+        screw_ie8: true,
+        keep_fnames: true
+      },
+      compress: {
+        screw_ie8: true
+      },
+      comments: false
+    })
   ],
   module: {
     rules: [{
@@ -69,8 +82,8 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
       test: /\.s?css$/,
       use: [
         'style-loader',
-        { loader: 'css-loader', options: { modules: true, importLoaders: 1 } },
-        { loader: 'postcss-loader', options: { plugins: () => [...plugins] } },
+        'css-loader',
+        'postcss-loader',
         'sass-loader'
       ]
     }, {

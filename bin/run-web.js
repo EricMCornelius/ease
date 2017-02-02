@@ -29,8 +29,6 @@ var _utils = require('./utils');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 var entry = _path2.default.resolve(process.argv[2]);
 
 var publicPath = '/dist';
@@ -44,7 +42,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
     filename: 'bundle.js',
     publicPath: publicPath
   },
-  // devtool: 'cheap-module-source-map',
+  devtool: 'cheap-module-source-map',
   resolveLoader: {
     modules: [_path2.default.resolve(__dirname, '../node_modules')]
   },
@@ -58,6 +56,10 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
   plugins: [new _webpack2.default.HotModuleReplacementPlugin()],
   module: {
     rules: [{
+      enforce: 'pre',
+      test: /\.jsx?$/,
+      loader: 'shebang-loader'
+    }, {
       enforce: 'pre',
       test: /\.jsx?$/,
       include: _utils.standard_transformer_filter,
@@ -75,19 +77,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
     }, {
       enforce: 'post',
       test: /\.s?css$/,
-      use: ['style-loader', { loader: 'css-loader', options: { modules: true, importLoaders: 1 } }, { loader: 'postcss-loader', options: { plugins: function (_plugins) {
-            function plugins() {
-              return _plugins.apply(this, arguments);
-            }
-
-            plugins.toString = function () {
-              return _plugins.toString();
-            };
-
-            return plugins;
-          }(function () {
-            return [].concat(_toConsumableArray(plugins));
-          }) } }, 'sass-loader']
+      use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader']
     }, {
       enforce: 'post',
       test: /\.json$/,
