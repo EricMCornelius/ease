@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+
+
 'use strict';
 
 var _setpath = require('./setpath');
@@ -17,7 +19,9 @@ var _module_patch = require('./module_patch');
 
 var _module_patch2 = _interopRequireDefault(_module_patch);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
 
 var entry = _path2.default.resolve(process.argv[2]);
 var pathname = _path2.default.resolve(process.argv[3]);

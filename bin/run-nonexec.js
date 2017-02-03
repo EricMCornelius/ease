@@ -26,7 +26,9 @@ var _babelPolyfill = require('babel-polyfill');
 
 var _babelPolyfill2 = _interopRequireDefault(_babelPolyfill);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+function _interopRequireDefault(obj) {
+  return obj && obj.__esModule ? obj : { default: obj };
+}
 
 global.__rootpath__ = process.cwd();
 process.env.NODE_PATH = __rootpath__ + ':' + __dirname;

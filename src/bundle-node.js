@@ -83,7 +83,7 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
       loaders: ['json-loader', 'yaml-loader']
     }, {
       enforce: 'post',
-      test: /\.txt$|\.pem$|\.crt$|\.key$|\.ps1$/,
+      test: /\.txt$|\.pem$|\.crt$|\.key$|\.ps1$|\.sh/,
       loaders: ['raw-loader']
     }]
   }
