@@ -25,6 +25,8 @@ var _utils = require('./utils');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
 var entry = _path2.default.resolve(process.argv[2]);
 var pathname = _path2.default.resolve(process.argv[3]);
 var directory = _path2.default.dirname(pathname);
@@ -33,7 +35,13 @@ var libname = filename.split('.')[0];
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
+var hook = _utils.webpack_opts.hook,
+    reload_url = _utils.webpack_opts.reload_url,
+    port = _utils.webpack_opts.port,
+    name = _utils.webpack_opts.name,
+    rest = _objectWithoutProperties(_utils.webpack_opts, ['hook', 'reload_url', 'port', 'name']);
+
+var webpack_settings = _lodash2.default.defaultsDeep(rest, {
   entry: entry,
   devtool: 'cheap-module-source-map',
   output: {
@@ -99,8 +107,12 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
   }
 });
 
-webpack_settings.hook && webpack_settings.hook(webpack_settings);
-delete webpack_settings.hook;
+if (hook) {
+  var res = hook(webpack_settings, 'bundle-node');
+  if (res) {
+    webpack_settings = res;
+  }
+}
 
 (0, _webpack2.default)(webpack_settings, function (err, stats) {
   if (err) {

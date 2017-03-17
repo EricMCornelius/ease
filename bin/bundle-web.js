@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+var _ref;
+
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
@@ -31,23 +33,61 @@ var _autoprefixer = require('autoprefixer');
 
 var _autoprefixer2 = _interopRequireDefault(_autoprefixer);
 
+var _extractTextWebpackPlugin = require('extract-text-webpack-plugin');
+
+var _extractTextWebpackPlugin2 = _interopRequireDefault(_extractTextWebpackPlugin);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var entry = _path2.default.resolve(process.argv[2]);
-var pathname = _path2.default.resolve(process.argv[3]);
-var directory = _path2.default.dirname(pathname);
-var filename = _path2.default.basename(pathname);
-var libname = filename.split('.')[0];
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
+var source = _path2.default.resolve(process.argv[2]);
+var target = process.argv[3];
+
+var pathname = _path2.default.resolve(target || '');
+var directory = target ? _path2.default.dirname(pathname) : 'dist';
+var filename = target ? _path2.default.basename(pathname) : null;
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
-  entry: [_path2.default.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'), entry],
-  devtool: 'cheap-module-source-map',
-  output: {
-    path: directory,
-    filename: filename
-  },
+var hook = _utils.webpack_opts.hook,
+    reload_url = _utils.webpack_opts.reload_url,
+    port = _utils.webpack_opts.port,
+    _webpack_opts$name = _utils.webpack_opts.name,
+    name = _webpack_opts$name === undefined ? filename : _webpack_opts$name,
+    _webpack_opts$vendor = _utils.webpack_opts.vendor,
+    vendor = _webpack_opts$vendor === undefined ? [] : _webpack_opts$vendor,
+    type = _utils.webpack_opts.type,
+    rest = _objectWithoutProperties(_utils.webpack_opts, ['hook', 'reload_url', 'port', 'name', 'vendor', 'type']);
+
+var resolve = function resolve(val) {
+  return _path2.default.resolve(__dirname, '../node_modules', val);
+};
+var polyfill_deps = type === 'lib' ? [] : ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
+
+vendor = [].concat(_toConsumableArray(polyfill_deps), _toConsumableArray(vendor));
+if (vendor.length === 1) vendor = vendor[0];
+
+var entry = vendor.length > 0 ? (_ref = {}, _defineProperty(_ref, name, source), _defineProperty(_ref, 'vendor', vendor), _ref) : _defineProperty({}, name, source);
+
+var output = type === 'lib' ? {
+  path: directory,
+  filename: '[name].js',
+  library: name,
+  libraryTarget: 'umd'
+} : {
+  path: directory,
+  filename: '[name].js'
+};
+
+var webpack_settings = _lodash2.default.defaultsDeep(rest, {
+  entry: entry,
+  output: output,
+  devtool: 'source-map',
   resolveLoader: {
     modules: [_path2.default.resolve(__dirname, '../node_modules')]
   },
@@ -74,12 +114,12 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
       screw_ie8: true
     },
     comments: false
-  })],
+  }), new _extractTextWebpackPlugin2.default(name ? name + '.css' : '[name].css')].concat(_toConsumableArray(type === 'lib' ? [] : [new _webpack2.default.optimize.CommonsChunkPlugin({ names: ['vendor', 'manifest'] })])),
   module: {
     rules: [{
       enforce: 'pre',
       test: /\.jsx?$/,
-      loader: 'shebang-loader'
+      use: 'shebang-loader'
     }, {
       enforce: 'post',
       test: /\.jsx?$/,
@@ -89,11 +129,33 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
     }, {
       enforce: 'post',
       test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-      loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]'
+      loader: 'url-loader',
+      query: {
+        limit: 30000,
+        name: '[name]-[hash].[ext]'
+      }
     }, {
       enforce: 'post',
       test: /\.s?css$/,
-      use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader']
+      use: _extractTextWebpackPlugin2.default.extract({
+        fallback: 'style-loader',
+        use: [{
+          loader: 'css-loader',
+          options: {
+            sourceMap: true,
+            modules: false
+          }
+        }, {
+          loader: 'postcss-loader',
+          options: {
+            plugins: function plugins() {
+              return [_precss2.default, _autoprefixer2.default];
+            }
+          }
+        }, {
+          loader: 'sass-loader'
+        }]
+      })
     }, {
       enforce: 'post',
       test: /\.json$/,
@@ -110,8 +172,12 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
   }
 });
 
-webpack_settings.hook && webpack_settings.hook(webpack_settings);
-delete webpack_settings.hook;
+if (hook) {
+  var res = hook(webpack_settings, 'bundle-web');
+  if (res) {
+    webpack_settings = res;
+  }
+}
 
 (0, _webpack2.default)(webpack_settings, function (err, stats) {
   if (err) {

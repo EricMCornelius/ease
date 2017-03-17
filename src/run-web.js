@@ -8,26 +8,49 @@ import webpack_dev_server from 'webpack-dev-server';
 import path from 'path';
 import patcher from './module_patch';
 import {formatter, webpack_opts, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
+import precss from 'precss';
+import autoprefixer from 'autoprefixer';
+import ExtractTextPlugin from 'extract-text-webpack-plugin';
 
 const entry = path.resolve(process.argv[2]);
+const output = process.argv[3];
 
-const publicPath = '/dist';
+const pathname = path.resolve(output || 'dist/bundle.js');
+const directory = output ? path.dirname(pathname) : '/dist';
+const filename = output ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-const webpack_settings = _.defaultsDeep(webpack_opts, {
-  entry: [
-    path.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + `?${webpack_opts.reload_url || 'http://localhost:8888'}`,
-    path.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'),
-    path.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'),
-    entry
-  ],
-  output: {
-    path: '/dist',
-    filename: 'bundle.js',
-    publicPath
+let {port = 8888, reload_url, hook, name = filename, vendor = [], type, ...rest} = webpack_opts;
+
+if (port && !reload_url) {
+  reload_url = `http://localhost:${port}`;
+}
+
+const resolve = val => path.resolve(__dirname, '../node_modules', val);
+
+const reload_deps = [`webpack-dev-server/client`, 'webpack/hot/only-dev-server'].map(resolve);
+reload_deps[0] += `?${reload_url}`;
+
+const polyfill_deps = ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
+
+vendor = [...polyfill_deps, ...vendor];
+if (vendor.length === 1) vendor = vendor[0];
+
+let webpack_settings = _.defaultsDeep(rest, {
+  entry: {
+    [name]: [
+      ...reload_deps,
+      entry
+    ],
+    vendor
   },
-  devtool: 'cheap-module-source-map',
+  output: {
+    path: directory,
+    filename: '[name].js',
+    publicPath: directory
+  },
+  devtool: 'cheap-module-inline-source-map',
   resolveLoader: {
     modules: [path.resolve(__dirname, '../node_modules')]
   },
@@ -41,7 +64,15 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
     }
   ],
   plugins: [
-    new webpack.HotModuleReplacementPlugin()
+    new webpack.ProgressPlugin(formatter),
+    new webpack.DefinePlugin({
+      'process.env.NODE_ENV': '"dev"'
+    }),
+    new webpack.HotModuleReplacementPlugin(),
+    new ExtractTextPlugin(name ? `${name}.css` : '[name].css'),
+    new webpack.optimize.CommonsChunkPlugin({
+      names: ['vendor', 'manifest']
+    })
   ],
   module: {
     rules: [{
@@ -62,16 +93,35 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
     }, {
       enforce: 'post',
       test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-      loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]'
+      loader: 'url-loader',
+      query: {
+        limit: 30000,
+        name: '[name]-[hash].[ext]'
+      }
     }, {
       enforce: 'post',
       test: /\.s?css$/,
-      use: [
-        'style-loader',
-        'css-loader',
-        'postcss-loader',
-        'sass-loader'
-      ]
+      use: ExtractTextPlugin.extract({
+        fallback: 'style-loader',
+        use: [
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true,
+              modules: false,
+            }
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              plugins: () => [precss, autoprefixer]
+            }
+          },
+          {
+            loader: 'sass-loader',
+          }
+        ]
+      })
     }, {
       enforce: 'post',
       test: /\.json$/,
@@ -88,8 +138,12 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
   }
 });
 
-webpack_settings.hook && webpack_settings.hook(webpack_settings);
-delete webpack_settings.hook;
+if (hook) {
+  const res = hook(webpack_settings, 'run-web');
+  if (res) {
+    webpack_settings = res;
+  }
+}
 
 const webpack_config = webpack(webpack_settings, (err, stats) => {
   if (err) {
@@ -100,7 +154,7 @@ const webpack_config = webpack(webpack_settings, (err, stats) => {
 });
 
 new webpack_dev_server(webpack_config, {
-  publicPath,
+  publicPath: directory,
   hot: true,
   historyApiFallback: true
 }).listen(webpack_opts.port || 8888, 'localhost', (err, result) => {
@@ -108,5 +162,5 @@ new webpack_dev_server(webpack_config, {
     return console.error(err);
   }
 
-  console.log(`Listening at localhost:${webpack_opts.port || 8888}`);
+  console.log(`Listening at localhost:${port}`);
 });

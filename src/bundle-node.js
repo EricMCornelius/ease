@@ -16,7 +16,9 @@ const libname = filename.split('.')[0];
 
 patcher(standard_transformer, standard_resolver);
 
-const webpack_settings = _.defaultsDeep(webpack_opts, {
+const {hook, reload_url, port, name, ...rest} = webpack_opts;
+
+let webpack_settings = _.defaultsDeep(rest, {
   entry,
   devtool: 'cheap-module-source-map',
   output: {
@@ -89,8 +91,12 @@ const webpack_settings = _.defaultsDeep(webpack_opts, {
   }
 });
 
-webpack_settings.hook && webpack_settings.hook(webpack_settings);
-delete webpack_settings.hook;
+if (hook) {
+  const res = hook(webpack_settings, 'bundle-node');
+  if (res) {
+    webpack_settings = res;
+  }
+}
 
 webpack(webpack_settings, (err, stats) => {
   if (err) {

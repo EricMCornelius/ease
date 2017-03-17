@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+var _entry;
+
 var _setpath = require('./setpath');
 
 var _setpath2 = _interopRequireDefault(_setpath);
@@ -27,22 +29,70 @@ var _module_patch2 = _interopRequireDefault(_module_patch);
 
 var _utils = require('./utils');
 
+var _precss = require('precss');
+
+var _precss2 = _interopRequireDefault(_precss);
+
+var _autoprefixer = require('autoprefixer');
+
+var _autoprefixer2 = _interopRequireDefault(_autoprefixer);
+
+var _extractTextWebpackPlugin = require('extract-text-webpack-plugin');
+
+var _extractTextWebpackPlugin2 = _interopRequireDefault(_extractTextWebpackPlugin);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var entry = _path2.default.resolve(process.argv[2]);
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
-var publicPath = '/dist';
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
+var entry = _path2.default.resolve(process.argv[2]);
+var output = process.argv[3];
+
+var pathname = _path2.default.resolve(output || 'dist/bundle.js');
+var directory = output ? _path2.default.dirname(pathname) : '/dist';
+var filename = output ? _path2.default.basename(pathname) : 'bundle';
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
-  entry: [_path2.default.resolve(__dirname, '../node_modules', 'webpack-dev-server/client') + ('?' + (_utils.webpack_opts.reload_url || 'http://localhost:8888')), _path2.default.resolve(__dirname, '../node_modules', 'webpack/hot/only-dev-server'), _path2.default.resolve(__dirname, '../node_modules', 'babel-polyfill/dist/polyfill.min.js'), entry],
+var _webpack_opts$port = _utils.webpack_opts.port,
+    port = _webpack_opts$port === undefined ? 8888 : _webpack_opts$port,
+    reload_url = _utils.webpack_opts.reload_url,
+    hook = _utils.webpack_opts.hook,
+    _webpack_opts$name = _utils.webpack_opts.name,
+    name = _webpack_opts$name === undefined ? filename : _webpack_opts$name,
+    _webpack_opts$vendor = _utils.webpack_opts.vendor,
+    vendor = _webpack_opts$vendor === undefined ? [] : _webpack_opts$vendor,
+    type = _utils.webpack_opts.type,
+    rest = _objectWithoutProperties(_utils.webpack_opts, ['port', 'reload_url', 'hook', 'name', 'vendor', 'type']);
+
+if (port && !reload_url) {
+  reload_url = 'http://localhost:' + port;
+}
+
+var resolve = function resolve(val) {
+  return _path2.default.resolve(__dirname, '../node_modules', val);
+};
+
+var reload_deps = ['webpack-dev-server/client', 'webpack/hot/only-dev-server'].map(resolve);
+reload_deps[0] += '?' + reload_url;
+
+var polyfill_deps = ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
+
+vendor = [].concat(_toConsumableArray(polyfill_deps), _toConsumableArray(vendor));
+if (vendor.length === 1) vendor = vendor[0];
+
+var webpack_settings = _lodash2.default.defaultsDeep(rest, {
+  entry: (_entry = {}, _defineProperty(_entry, name, [].concat(_toConsumableArray(reload_deps), [entry])), _defineProperty(_entry, 'vendor', vendor), _entry),
   output: {
-    path: '/dist',
-    filename: 'bundle.js',
-    publicPath: publicPath
+    path: directory,
+    filename: '[name].js',
+    publicPath: directory
   },
-  devtool: 'cheap-module-source-map',
+  devtool: 'cheap-module-inline-source-map',
   resolveLoader: {
     modules: [_path2.default.resolve(__dirname, '../node_modules')]
   },
@@ -53,7 +103,11 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
     'external': true,
     'regenerator': true
   }],
-  plugins: [new _webpack2.default.HotModuleReplacementPlugin()],
+  plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.DefinePlugin({
+    'process.env.NODE_ENV': '"dev"'
+  }), new _webpack2.default.HotModuleReplacementPlugin(), new _extractTextWebpackPlugin2.default(name ? name + '.css' : '[name].css'), new _webpack2.default.optimize.CommonsChunkPlugin({
+    names: ['vendor', 'manifest']
+  })],
   module: {
     rules: [{
       enforce: 'pre',
@@ -73,11 +127,33 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
     }, {
       enforce: 'post',
       test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-      loader: 'url-loader?limit=30000&name=[name]-[hash].[ext]'
+      loader: 'url-loader',
+      query: {
+        limit: 30000,
+        name: '[name]-[hash].[ext]'
+      }
     }, {
       enforce: 'post',
       test: /\.s?css$/,
-      use: ['style-loader', 'css-loader', 'postcss-loader', 'sass-loader']
+      use: _extractTextWebpackPlugin2.default.extract({
+        fallback: 'style-loader',
+        use: [{
+          loader: 'css-loader',
+          options: {
+            sourceMap: true,
+            modules: false
+          }
+        }, {
+          loader: 'postcss-loader',
+          options: {
+            plugins: function plugins() {
+              return [_precss2.default, _autoprefixer2.default];
+            }
+          }
+        }, {
+          loader: 'sass-loader'
+        }]
+      })
     }, {
       enforce: 'post',
       test: /\.json$/,
@@ -94,8 +170,12 @@ var webpack_settings = _lodash2.default.defaultsDeep(_utils.webpack_opts, {
   }
 });
 
-webpack_settings.hook && webpack_settings.hook(webpack_settings);
-delete webpack_settings.hook;
+if (hook) {
+  var res = hook(webpack_settings, 'run-web');
+  if (res) {
+    webpack_settings = res;
+  }
+}
 
 var webpack_config = (0, _webpack2.default)(webpack_settings, function (err, stats) {
   if (err) {
@@ -106,7 +186,7 @@ var webpack_config = (0, _webpack2.default)(webpack_settings, function (err, sta
 });
 
 new _webpackDevServer2.default(webpack_config, {
-  publicPath: publicPath,
+  publicPath: directory,
   hot: true,
   historyApiFallback: true
 }).listen(_utils.webpack_opts.port || 8888, 'localhost', function (err, result) {
@@ -114,5 +194,5 @@ new _webpackDevServer2.default(webpack_config, {
     return console.error(err);
   }
 
-  console.log('Listening at localhost:' + (_utils.webpack_opts.port || 8888));
+  console.log('Listening at localhost:' + port);
 });

@@ -118,7 +118,7 @@ var babel_opts = {};
 var babel_default_opts = {
   babelrc: false,
   presets: ['es2015', 'react', 'stage-2'],
-  plugins: ['syntax-decorators', 'transform-decorators-legacy']
+  plugins: ['syntax-decorators', 'transform-decorators-legacy', 'transform-export-extensions']
 };
 
 var mocha_opts = {};
@@ -200,9 +200,13 @@ var webpack_default_opts = {};
 
 // set the default opts to the webpack.config.js
 try {
-  var root_webpack_file = _path2.default.resolve(process.cwd(), 'webpack.config.js');
-  webpack_default_opts = require(root_webpack_file);
-} catch (err) {}
+  var webpack_file = _path2.default.resolve(process.cwd(), 'webpack.config.js');
+  if (_fs2.default.existsSync(webpack_file)) {
+    webpack_default_opts = require(webpack_file);
+  }
+} catch (err) {
+  console.error(err.stack);
+}
 
 var standard_transformer = function standard_transformer(content, filename) {
   return content;
@@ -245,6 +249,7 @@ try {
     _winston2.default.level = _config.log_level;
   }
 } catch (err) {
+  console.error(err.stack);
   exports.eslint_opts = eslint_opts = eslint_default_opts;
   exports.babel_opts = babel_opts = babel_default_opts;
 }
