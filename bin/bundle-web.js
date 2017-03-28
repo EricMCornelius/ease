@@ -37,6 +37,12 @@ var _extractTextWebpackPlugin = require('extract-text-webpack-plugin');
 
 var _extractTextWebpackPlugin2 = _interopRequireDefault(_extractTextWebpackPlugin);
 
+var _webpackBundleAnalyzer = require('webpack-bundle-analyzer');
+
+var _plugin = require('webpack-dashboard/plugin');
+
+var _plugin2 = _interopRequireDefault(_plugin);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
@@ -48,21 +54,27 @@ function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in ob
 var source = _path2.default.resolve(process.argv[2]);
 var target = process.argv[3];
 
+var headless = process.env.EASE_HEADLESS === 'true';
+
 var pathname = _path2.default.resolve(target || '');
 var directory = target ? _path2.default.dirname(pathname) : 'dist';
 var filename = target ? _path2.default.basename(pathname) : null;
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-var hook = _utils.webpack_opts.hook,
+var _webpack_opts$build_d = _utils.webpack_opts.build_dir,
+    build_dir = _webpack_opts$build_d === undefined ? directory : _webpack_opts$build_d,
+    public_path = _utils.webpack_opts.public_path,
+    hook = _utils.webpack_opts.hook,
     reload_url = _utils.webpack_opts.reload_url,
+    host = _utils.webpack_opts.host,
     port = _utils.webpack_opts.port,
     _webpack_opts$name = _utils.webpack_opts.name,
     name = _webpack_opts$name === undefined ? filename : _webpack_opts$name,
     _webpack_opts$vendor = _utils.webpack_opts.vendor,
     vendor = _webpack_opts$vendor === undefined ? [] : _webpack_opts$vendor,
     type = _utils.webpack_opts.type,
-    rest = _objectWithoutProperties(_utils.webpack_opts, ['hook', 'reload_url', 'port', 'name', 'vendor', 'type']);
+    rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'public_path', 'hook', 'reload_url', 'host', 'port', 'name', 'vendor', 'type']);
 
 var resolve = function resolve(val) {
   return _path2.default.resolve(__dirname, '../node_modules', val);
@@ -75,12 +87,12 @@ if (vendor.length === 1) vendor = vendor[0];
 var entry = vendor.length > 0 ? (_ref = {}, _defineProperty(_ref, name, source), _defineProperty(_ref, 'vendor', vendor), _ref) : _defineProperty({}, name, source);
 
 var output = type === 'lib' ? {
-  path: directory,
+  path: _path2.default.resolve(build_dir),
   filename: '[name].js',
   library: name,
   libraryTarget: 'umd'
 } : {
-  path: directory,
+  path: _path2.default.resolve(build_dir),
   filename: '[name].js'
 };
 
@@ -99,22 +111,22 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
     'regenerator': true
   }],
   target: 'web',
-  plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.DefinePlugin({
+  plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter)].concat(_toConsumableArray(type === 'lib' ? [] : [new _webpack2.default.optimize.CommonsChunkPlugin({ names: ['vendor', 'manifest'] })]), [new _webpack2.default.DefinePlugin({
     'process.env.NODE_ENV': '"production"'
   }), new _webpack2.default.LoaderOptionsPlugin({
     minimize: true,
     debug: false
   }), new _webpack2.default.optimize.UglifyJsPlugin({
     beautify: false,
-    mangle: {
-      screw_ie8: true,
-      keep_fnames: true
-    },
-    compress: {
-      screw_ie8: true
-    },
+    sourceMap: true,
+    mangle: true,
+    compress: true,
     comments: false
-  }), new _extractTextWebpackPlugin2.default(name ? name + '.css' : '[name].css')].concat(_toConsumableArray(type === 'lib' ? [] : [new _webpack2.default.optimize.CommonsChunkPlugin({ names: ['vendor', 'manifest'] })])),
+  }), new _extractTextWebpackPlugin2.default(name ? name + '.css' : '[name].css')], _toConsumableArray(headless ? [] : [new _webpackBundleAnalyzer.BundleAnalyzerPlugin({
+    analyzerMode: 'static',
+    openAnalyzer: true,
+    generateStatsFile: true
+  }), new _plugin2.default()])),
   module: {
     rules: [{
       enforce: 'pre',
@@ -179,7 +191,13 @@ if (hook) {
   }
 }
 
-(0, _webpack2.default)(webpack_settings, function (err, stats) {
+// strip any server props
+
+var _webpack_settings = webpack_settings,
+    server = _webpack_settings.server,
+    remainder = _objectWithoutProperties(_webpack_settings, ['server']);
+
+(0, _webpack2.default)(remainder, function (err, stats) {
   if (err) {
     throw err;
   }

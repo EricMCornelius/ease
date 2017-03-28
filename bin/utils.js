@@ -234,7 +234,7 @@ var config = {};
 
 // merge config from the .ease_config file
 try {
-  var config_file = _path2.default.resolve(process.cwd(), '.ease_config');
+  var config_file = _path2.default.resolve(process.cwd(), process.env.EASE_CONFIG || '.ease_config');
   var _config = require(config_file);
   _lodash2.default.defaultsDeep(eslint_opts, _config.eslint, eslint_default_opts);
   _lodash2.default.defaultsDeep(babel_opts, _config.babel, babel_default_opts);

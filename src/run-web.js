@@ -11,6 +11,7 @@ import {formatter, webpack_opts, babel_opts, standard_transformer, standard_tran
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
+import DashboardPlugin from 'webpack-dashboard/plugin';
 
 const entry = path.resolve(process.argv[2]);
 const output = process.argv[3];
@@ -21,10 +22,10 @@ const filename = output ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-let {port = 8888, reload_url, hook, name = filename, vendor = [], type, ...rest} = webpack_opts;
+let {build_dir, host = 'localhost', port = 8888, reload_url, public_path = directory, hook, name = filename, vendor = [], type, ...rest} = webpack_opts;
 
 if (port && !reload_url) {
-  reload_url = `http://localhost:${port}`;
+  reload_url = `http://${host}:${port}`;
 }
 
 const resolve = val => path.resolve(__dirname, '../node_modules', val);
@@ -48,7 +49,7 @@ let webpack_settings = _.defaultsDeep(rest, {
   output: {
     path: directory,
     filename: '[name].js',
-    publicPath: directory
+    publicPath: public_path
   },
   devtool: 'cheap-module-inline-source-map',
   resolveLoader: {
@@ -65,14 +66,15 @@ let webpack_settings = _.defaultsDeep(rest, {
   ],
   plugins: [
     new webpack.ProgressPlugin(formatter),
+    new webpack.optimize.CommonsChunkPlugin({
+      names: ['vendor', 'manifest']
+    }),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"dev"'
     }),
     new webpack.HotModuleReplacementPlugin(),
     new ExtractTextPlugin(name ? `${name}.css` : '[name].css'),
-    new webpack.optimize.CommonsChunkPlugin({
-      names: ['vendor', 'manifest']
-    })
+    new DashboardPlugin()
   ],
   module: {
     rules: [{
@@ -135,6 +137,13 @@ let webpack_settings = _.defaultsDeep(rest, {
       test: /\.txt$/,
       loaders: ['raw-loader']
     }]
+  },
+  server: {
+    publicPath: public_path,
+    hot: true,
+    historyApiFallback: true,
+    host,
+    port
   }
 });
 
@@ -145,7 +154,9 @@ if (hook) {
   }
 }
 
-const webpack_config = webpack(webpack_settings, (err, stats) => {
+const {server, ...remainder} = webpack_settings;
+
+const webpack_config = webpack(remainder, (err, stats) => {
   if (err) {
     throw err;
   }
@@ -153,14 +164,12 @@ const webpack_config = webpack(webpack_settings, (err, stats) => {
   console.log(stats.toString('normal'));
 });
 
-new webpack_dev_server(webpack_config, {
-  publicPath: directory,
-  hot: true,
-  historyApiFallback: true
-}).listen(webpack_opts.port || 8888, 'localhost', (err, result) => {
+const {host: server_host, port: server_port, ...server_config} = server;
+
+new webpack_dev_server(webpack_config, server_config).listen(server_port, server_host, (err, result) => {
   if (err) {
     return console.error(err);
   }
 
-  console.log(`Listening at localhost:${port}`);
+  console.log(`Listening at ${host}:${port}`);
 });

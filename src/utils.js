@@ -207,7 +207,7 @@ let config = {};
 
 // merge config from the .ease_config file
 try {
-  const config_file = path.resolve(process.cwd(), '.ease_config');
+  const config_file = path.resolve(process.cwd(), process.env.EASE_CONFIG || '.ease_config');
   const config = require(config_file);
   _.defaultsDeep(eslint_opts, config.eslint, eslint_default_opts);
   _.defaultsDeep(babel_opts, config.babel, babel_default_opts);

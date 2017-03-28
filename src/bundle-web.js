@@ -10,9 +10,13 @@ import {formatter, webpack_opts, babel_opts, standard_transformer, standard_tran
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
 import ExtractTextPlugin from 'extract-text-webpack-plugin';
+import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
+import DashboardPlugin from 'webpack-dashboard/plugin';
 
 const source = path.resolve(process.argv[2]);
 const target = process.argv[3];
+
+const headless = process.env.EASE_HEADLESS === 'true';
 
 const pathname = path.resolve(target || '');
 const directory = target ? path.dirname(pathname) : 'dist';
@@ -20,7 +24,7 @@ const filename = target ? path.basename(pathname) : null;
 
 patcher(standard_transformer, standard_resolver);
 
-let {hook, reload_url, port, name = filename, vendor = [], type, ...rest} = webpack_opts;
+let {build_dir = directory, public_path, hook, reload_url, host, port, name = filename, vendor = [], type, ...rest} = webpack_opts;
 
 const resolve = val => path.resolve(__dirname, '../node_modules', val);
 const polyfill_deps = type === 'lib' ? [] : ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
@@ -36,12 +40,12 @@ const entry = vendor.length > 0 ? {
 }
 
 const output = type === 'lib' ? {
-  path: directory,
+  path: path.resolve(build_dir),
   filename: '[name].js',
   library: name,
   libraryTarget: 'umd'
 } : {
-  path: directory,
+  path: path.resolve(build_dir),
   filename: '[name].js'
 };
 
@@ -64,6 +68,7 @@ let webpack_settings = _.defaultsDeep(rest, {
   target: 'web',
   plugins: [
     new webpack.ProgressPlugin(formatter),
+    ...(type === 'lib' ? [] : [new webpack.optimize.CommonsChunkPlugin({ names: ['vendor', 'manifest'] })]),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"production"'
     }),
@@ -73,17 +78,20 @@ let webpack_settings = _.defaultsDeep(rest, {
     }),
     new webpack.optimize.UglifyJsPlugin({
       beautify: false,
-      mangle: {
-        screw_ie8: true,
-        keep_fnames: true
-      },
-      compress: {
-        screw_ie8: true
-      },
+      sourceMap: true,
+      mangle: true,
+      compress: true,
       comments: false
     }),
     new ExtractTextPlugin(name ? `${name}.css` : '[name].css'),
-    ...(type === 'lib' ? [] : [new webpack.optimize.CommonsChunkPlugin({ names: ['vendor', 'manifest'] })])
+    ...(headless ? [] : [
+      new BundleAnalyzerPlugin({
+        analyzerMode: 'static',
+        openAnalyzer: true,
+        generateStatsFile: true
+      }),
+      new DashboardPlugin()
+    ])
   ],
   module: {
     rules: [{
@@ -151,7 +159,10 @@ if (hook) {
   }
 }
 
-webpack(webpack_settings, (err, stats) => {
+// strip any server props
+const {server, ...remainder} = webpack_settings;
+
+webpack(remainder, (err, stats) => {
   if (err) {
     throw err;
   }
