@@ -58,7 +58,7 @@ var headless = process.env.EASE_HEADLESS === 'true';
 
 var pathname = _path2.default.resolve(target || '');
 var directory = target ? _path2.default.dirname(pathname) : 'dist';
-var filename = target ? _path2.default.basename(pathname) : null;
+var filename = target ? _path2.default.basename(pathname) : 'bundle';
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
@@ -138,6 +138,14 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
       include: _utils.standard_transformer_filter,
       loader: 'babel-loader',
       query: _utils.babel_opts
+    }, {
+      enforce: 'post',
+      test: /\.worker\.jsx?$/,
+      loader: 'worker-loader',
+      query: {
+        inline: true,
+        name: '[name].js'
+      }
     }, {
       enforce: 'post',
       test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,

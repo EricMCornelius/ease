@@ -20,7 +20,7 @@ const headless = process.env.EASE_HEADLESS === 'true';
 
 const pathname = path.resolve(target || '');
 const directory = target ? path.dirname(pathname) : 'dist';
-const filename = target ? path.basename(pathname) : null;
+const filename = target ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
@@ -104,6 +104,14 @@ let webpack_settings = _.defaultsDeep(rest, {
       include: standard_transformer_filter,
       loader: 'babel-loader',
       query: babel_opts
+    }, {
+      enforce: 'post',
+      test: /\.worker\.jsx?$/,
+      loader: 'worker-loader',
+      query: {
+        inline: true,
+        name: '[name].js'
+      }
     }, {
       enforce: 'post',
       test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,

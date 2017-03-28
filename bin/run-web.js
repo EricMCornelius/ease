@@ -135,6 +135,14 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
       query: _utils.babel_opts
     }, {
       enforce: 'post',
+      test: /\.worker\.jsx?$/,
+      loader: 'worker-loader',
+      query: {
+        inline: true,
+        name: '[name].js'
+      }
+    }, {
+      enforce: 'post',
       test: /\.(eot|woff|woff2|ttf|svg|png|jpg|gif)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
       loader: 'url-loader',
       query: {
