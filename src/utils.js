@@ -88,7 +88,7 @@ const formatter = (percentage, message) => {
 let babel_opts = {};
 const babel_default_opts = {
   babelrc: false,
-  presets: [['es2015', {modules: false}], 'react', 'stage-2'],
+  presets: [['es2015', {modules: 'commonjs'}], 'react', 'stage-2'],
   plugins: ['syntax-decorators', 'transform-decorators-legacy', 'transform-export-extensions']
 };
 
