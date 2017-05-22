@@ -29,6 +29,10 @@ var _cache2 = _interopRequireDefault(_cache);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
 var cache_dir = _path2.default.resolve('.ease_cache');
 
 var get_cache = function get_cache() {
@@ -237,9 +241,28 @@ try {
   var config_file = _path2.default.resolve(process.cwd(), process.env.EASE_CONFIG || '.ease_config');
   var _config = require(config_file);
   _lodash2.default.defaultsDeep(eslint_opts, _config.eslint, eslint_default_opts);
-  _lodash2.default.defaultsDeep(babel_opts, _config.babel, babel_default_opts);
   _lodash2.default.defaultsDeep(mocha_opts, _config.mocha, mocha_default_opts);
   _lodash2.default.defaultsDeep(webpack_opts, _config.webpack, webpack_default_opts);
+
+  var _ref = _config.babel || {},
+      _ref$override = _ref.override,
+      override = _ref$override === undefined ? false : _ref$override,
+      targets = _ref.targets,
+      config_babel_opts = _objectWithoutProperties(_ref, ['override', 'targets']);
+
+  if (override) {
+    exports.babel_opts = babel_opts = config_babel_opts;
+  } else if (targets) {
+    var plugins = config_babel_opts.plugins || [];
+    var presets = config_babel_opts.presets || [];
+
+    exports.babel_opts = babel_opts = {
+      presets: [['env', { targets: targets, debug: true }]].concat(_toConsumableArray(presets)),
+      plugins: plugins
+    };
+  } else {
+    _lodash2.default.defaultsDeep(babel_opts, _config.babel, babel_default_opts);
+  }
 
   if (_config.transform_filter) {
     exports.standard_transformer_filter = standard_transformer_filter = _config.transform_filter;
