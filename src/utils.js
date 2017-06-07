@@ -6,7 +6,7 @@ import log from 'winston';
 import {find} from 'shelljs';
 import Cache from './cache';
 
-let cache_dir = path.resolve('.ease_cache');
+const cache_dir = path.resolve('.ease_cache');
 
 const get_cache = () => new Cache({dir: cache_dir});
 
@@ -15,8 +15,8 @@ const get_packages = dir => find(dir)
 
 const get_ease_deps = dir => get_packages(dir)
   .reduce((agg, file) => {
-    let dir = path.dirname(file);
-    let dep = path.basename(dir);
+    const dir = path.dirname(file);
+    const dep = path.basename(dir);
     if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1 && dep.indexOf('source-map-support') === -1) {
       return agg;
     }
@@ -24,7 +24,7 @@ const get_ease_deps = dir => get_packages(dir)
     return agg;
   }, {});
 
-let ease_dep_dir = path.resolve(__dirname, '../node_modules');
+const ease_dep_dir = path.resolve(__dirname, '../node_modules');
 
 const cache = get_cache();
 
@@ -57,13 +57,13 @@ catch (err) {
   cache.put(project_deps_key, project_dep_trie);
 }
 
-let matching_prefixes_impl = (node, path, curr = [], results = []) => {
+const matching_prefixes_impl = (node, path, curr = [], results = []) => {
   if (path.length === 0) {
     return results;
   }
 
-  let next = path.shift();
-  let lookup = node[next];
+  const next = path.shift();
+  const lookup = node[next];
   curr = curr.concat(next);
 
   return lookup ?
@@ -71,7 +71,7 @@ let matching_prefixes_impl = (node, path, curr = [], results = []) => {
     results;
 };
 
-let matching_prefixes = path => matching_prefixes_impl(project_dep_trie, path.split('/')).reverse();
+const matching_prefixes = path => matching_prefixes_impl(project_dep_trie, path.split('/')).reverse();
 
 const formatter = (percentage, message) => {
   const formatted = `${(100.0 * percentage).toFixed(1)}%: ${message}`;
@@ -88,8 +88,8 @@ const formatter = (percentage, message) => {
 let babel_opts = {};
 const babel_default_opts = {
   babelrc: false,
-  presets: ['es2015', 'react', 'stage-2'],
-  plugins: ['syntax-decorators', 'transform-decorators-legacy']
+  presets: [['es2015', {modules: 'commonjs'}], 'react', 'stage-2'],
+  plugins: ['syntax-decorators', 'transform-decorators-legacy', 'transform-export-extensions']
 };
 
 let mocha_opts = {};
@@ -176,11 +176,13 @@ let webpack_default_opts = {};
 
 // set the default opts to the webpack.config.js
 try {
-  const root_webpack_file = path.resolve(process.cwd(), 'webpack.config.js');
-  webpack_default_opts = require(root_webpack_file);
+  const webpack_file = path.resolve(process.cwd(), 'webpack.config.js');
+  if (fs.existsSync(webpack_file)) {
+    webpack_default_opts = require(webpack_file);
+  }
 }
 catch(err) {
-
+  console.error(err.stack);
 }
 
 let standard_transformer = (content, filename) => content;
@@ -205,12 +207,28 @@ let config = {};
 
 // merge config from the .ease_config file
 try {
-  const config_file = path.resolve(process.cwd(), '.ease_config');
+  const config_file = path.resolve(process.cwd(), process.env.EASE_CONFIG || '.ease_config');
   const config = require(config_file);
   _.defaultsDeep(eslint_opts, config.eslint, eslint_default_opts);
-  _.defaultsDeep(babel_opts, config.babel, babel_default_opts);
   _.defaultsDeep(mocha_opts, config.mocha, mocha_default_opts);
   _.defaultsDeep(webpack_opts, config.webpack, webpack_default_opts);
+
+  const {override = false, targets, ...config_babel_opts} = (config.babel || {});
+  if (override) {
+    babel_opts = config_babel_opts;
+  }
+  else if (targets) {
+    const plugins = config_babel_opts.plugins || [];
+    const presets = config_babel_opts.presets || [];
+
+    babel_opts = {
+      presets: [['env', {targets, debug: true}], ...presets],
+      plugins
+    };
+  }
+  else {
+    _.defaultsDeep(babel_opts, config.babel, babel_default_opts);
+  }
 
   if (config.transform_filter) {
     standard_transformer_filter = config.transform_filter;
@@ -221,6 +239,7 @@ try {
   }
 }
 catch(err) {
+  console.error(err.stack);
   eslint_opts = eslint_default_opts;
   babel_opts = babel_default_opts;
 }

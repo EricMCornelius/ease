@@ -98,7 +98,10 @@ var transformer = function transformer(content, filename) {
   }
 
   // raw import
-  if (filename.endsWith('.txt') || filename.endsWith('.key') || filename.endsWith('.crt') || filename.endsWith('.pem')) {
+  var extensions = ['txt', 'key', 'crt', 'pem', 'ps1', 'sh'];
+  if (extensions.some(function (ext) {
+    return filename.endsWith('.' + ext);
+  })) {
     _utils.log.debug('Transforming raw file: ' + filename);
     var _transformed = 'module.exports = ' + JSON.stringify(content.toString());
     _utils.cache.put(key + '.code', _transformed);
