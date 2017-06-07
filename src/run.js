@@ -71,7 +71,8 @@ let transformer = (content, filename) => {
   }
 
   // raw import
-  if (filename.endsWith('.txt') || filename.endsWith('.key') || filename.endsWith('.crt') || filename.endsWith('.pem')) {
+  const extensions = ['txt', 'key', 'crt', 'pem', 'ps1', 'sh'];
+  if (extensions.some(ext => filename.endsWith(`.${ext}`))) {
     log.debug(`Transforming raw file: ${filename}`);
     const transformed = `module.exports = ${JSON.stringify(content.toString())}`;
     cache.put(key + '.code', transformed);
@@ -83,7 +84,7 @@ let transformer = (content, filename) => {
   let transpiled = transform(content, {...babel_opts, sourceMaps: true});
   cache.put(key + '.map', transpiled.map);
   let source_map = path.resolve(process.cwd(), '.ease_cache', key + '.map');
-  
+
   let transpiled_code = `${transpiled.code}\n//# sourceMappingURL=${source_map}`;
   cache.put(key + '.code', transpiled_code);
   return transpiled_code;

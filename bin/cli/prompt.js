@@ -19,10 +19,10 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 Object.entries(commands).map(function (_ref) {
-  var _ref2 = _slicedToArray(_ref, 2);
+  var _ref2 = _slicedToArray(_ref, 2),
+      name = _ref2[0],
+      cmd = _ref2[1];
 
-  var name = _ref2[0];
-  var cmd = _ref2[1];
   return _yargs2.default.command(cmd);
 });
 

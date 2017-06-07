@@ -25,6 +25,8 @@ var _utils = require('./utils');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
 var entry = _path2.default.resolve(process.argv[2]);
 var pathname = _path2.default.resolve(process.argv[3]);
 var directory = _path2.default.dirname(pathname);
@@ -33,7 +35,13 @@ var libname = filename.split('.')[0];
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-(0, _webpack2.default)(_lodash2.default.defaultsDeep(_utils.webpack_opts, {
+var hook = _utils.webpack_opts.hook,
+    reload_url = _utils.webpack_opts.reload_url,
+    port = _utils.webpack_opts.port,
+    name = _utils.webpack_opts.name,
+    rest = _objectWithoutProperties(_utils.webpack_opts, ['hook', 'reload_url', 'port', 'name']);
+
+var webpack_settings = _lodash2.default.defaultsDeep(rest, {
   entry: entry,
   devtool: 'cheap-module-source-map',
   output: {
@@ -43,10 +51,10 @@ var libname = filename.split('.')[0];
     libraryTarget: 'commonjs2'
   },
   resolveLoader: {
-    root: _path2.default.resolve(__dirname, '../node_modules')
+    modules: [_path2.default.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    modulesDirectories: ['node_modules', '.']
+    modules: ['node_modules', '.']
   },
   externals: [{
     'external': true
@@ -54,32 +62,49 @@ var libname = filename.split('.')[0];
   target: 'node',
   plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.DefinePlugin({
     'process.env.NODE_ENV': '"production"'
-  }), new _webpack2.default.optimize.DedupePlugin(), new _webpack2.default.optimize.UglifyJsPlugin()],
+  }), new _webpack2.default.LoaderOptionsPlugin({
+    minimize: true,
+    debug: false
+  })],
   module: {
-    preLoaders: [{
+    rules: [{
+      enforce: 'pre',
       test: /\.jsx?$/,
-      loader: 'shebang'
-    }],
-    loaders: [{
+      loader: 'shebang-loader'
+    }, {
+      enforce: 'post',
       test: /\.jsx?$/,
       include: _utils.standard_transformer_filter,
-      loader: 'babel',
+      loader: 'babel-loader',
       query: _utils.babel_opts
     }, {
+      enforce: 'post',
       test: /\.s?css$/,
-      loaders: ['style', 'css', 'sass']
+      loaders: ['style-loader', 'css-loader', 'sass-loader']
     }, {
+      enforce: 'post',
       test: /\.json$/,
-      loaders: ['json']
+      loaders: ['json-loader']
     }, {
+      enforce: 'post',
       test: /\.yaml$/,
-      loaders: ['json', 'yaml']
+      loaders: ['json-loader', 'yaml-loader']
     }, {
-      test: /\.txt$|\.pem$|\.crt$|\.key$/,
-      loaders: ['raw']
+      enforce: 'post',
+      test: /\.txt$|\.pem$|\.crt$|\.key$|\.ps1$|\.sh/,
+      loaders: ['raw-loader']
     }]
   }
-}), function (err, stats) {
+});
+
+if (hook) {
+  var res = hook(webpack_settings, 'bundle-node');
+  if (res) {
+    webpack_settings = res;
+  }
+}
+
+(0, _webpack2.default)(webpack_settings, function (err, stats) {
   if (err) {
     throw err;
   }

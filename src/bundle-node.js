@@ -8,16 +8,17 @@ import path from 'path';
 import patcher from './module_patch';
 import {formatter, webpack_opts, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
 
-let entry = path.resolve(process.argv[2]);
-let pathname = path.resolve(process.argv[3]);
-let directory = path.dirname(pathname);
-let filename = path.basename(pathname);
-let libname = filename.split('.')[0];
+const entry = path.resolve(process.argv[2]);
+const pathname = path.resolve(process.argv[3]);
+const directory = path.dirname(pathname);
+const filename = path.basename(pathname);
+const libname = filename.split('.')[0];
 
 patcher(standard_transformer, standard_resolver);
 
-webpack(
-_.defaultsDeep(webpack_opts, {
+const {hook, reload_url, port, name, ...rest} = webpack_opts;
+
+let webpack_settings = _.defaultsDeep(rest, {
   entry,
   devtool: 'cheap-module-source-map',
   output: {
@@ -27,10 +28,10 @@ _.defaultsDeep(webpack_opts, {
     libraryTarget: 'commonjs2'
   },
   resolveLoader: {
-    root: path.resolve(__dirname, '../node_modules')
+    modules: [path.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    modulesDirectories: ['node_modules', '.']
+    modules: ['node_modules', '.']
   },
   externals: [
     {
@@ -43,42 +44,50 @@ _.defaultsDeep(webpack_opts, {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"production"'
     }),
-    new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.UglifyJsPlugin()
+    new webpack.LoaderOptionsPlugin({
+      minimize: true,
+      debug: false
+    })
   ],
   module: {
-    preLoaders: [
-      {
-        test: /\.jsx?$/,
-        loader: 'shebang'
-      }
-    ],
-    loaders: [
-      {
-        test: /\.jsx?$/,
-        include: standard_transformer_filter,
-        loader: 'babel',
-        query: babel_opts
-      },
-      {
-        test: /\.s?css$/,
-        loaders: ['style', 'css', 'sass']
-      },
-      {
-        test: /\.json$/,
-        loaders: ['json']
-      },
-      {
-        test: /\.yaml$/,
-        loaders: ['json', 'yaml']
-      },
-      {
-        test: /\.txt$|\.pem$|\.crt$|\.key$/,
-        loaders: ['raw']
-      }
-    ]
+    rules: [{
+      enforce: 'pre',
+      test: /\.jsx?$/,
+      loader: 'shebang-loader'
+    }, {
+      enforce: 'post',
+      test: /\.jsx?$/,
+      include: standard_transformer_filter,
+      loader: 'babel-loader',
+      query: babel_opts
+    }, {
+      enforce: 'post',
+      test: /\.s?css$/,
+      loaders: ['style-loader', 'css-loader', 'sass-loader']
+    }, {
+      enforce: 'post',
+      test: /\.json$/,
+      loaders: ['json-loader']
+    }, {
+      enforce: 'post',
+      test: /\.yaml$/,
+      loaders: ['json-loader', 'yaml-loader']
+    }, {
+      enforce: 'post',
+      test: /\.txt$|\.pem$|\.crt$|\.key$|\.ps1$|\.sh/,
+      loaders: ['raw-loader']
+    }]
   }
-}), (err, stats) => {
+});
+
+if (hook) {
+  const res = hook(webpack_settings, 'bundle-node');
+  if (res) {
+    webpack_settings = res;
+  }
+}
+
+webpack(webpack_settings, (err, stats) => {
   if (err) {
     throw err;
   }

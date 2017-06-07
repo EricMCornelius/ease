@@ -13,7 +13,7 @@ import {babel_opts, mocha_opts, eslint_opts, standard_resolver, standard_transfo
 
 import {Collector, Reporter} from 'istanbul';
 import {transform} from 'babel-core';
-import {SourceCode, CLIEngine, linter} from 'eslint';
+import {SourceCode, CLIEngine} from 'eslint';
 import mocha from 'mocha';
 import jv from 'junit-viewer';
 
@@ -48,7 +48,9 @@ global.__linting__ = {
 
 let cli = new CLIEngine({
   ignore: true,
-  useEslintrc: true
+  useEslintrc: true,
+  cache: false,
+  ...eslint_opts
 });
 
 cli.addPlugin('eslint-plugin-babel', plugin);
@@ -67,10 +69,17 @@ process.on('beforeExit', () => {
   fs.writeFileSync('reports/style/index.html', html_formatter(__linting__.results));
 
   let collector = new Collector();
+  for (const key of Object.keys(__coverage__)) {
+    if (key.indexOf('node_modules') !== -1) {
+      delete __coverage__[key];
+    }
+  }
+
   collector.add(__coverage__);
-  collector.files().forEach(file => {
-    let file_coverage = collector.fileCoverageFor(file);
-  });
+  //collector.files().forEach(file => {
+  //  let file_coverage = collector.fileCoverageFor(file);
+  //});
+
   let final_coverage = collector.getFinalCoverage();
 
   let reporter = new Reporter(false, 'reports/coverage');
@@ -85,11 +94,20 @@ process.on('beforeExit', () => {
   process.exit(0);
 });
 
+const image_exts = ['svg', 'png', 'jpg', 'gif'];
+
 let transformer = (content, filename) => {
   log.debug(`Processing file: ${filename}`);
   if (filename.endsWith('.css') || filename.endsWith('.scss')) {
     log.debug(`Skipping style file: ${filename}`);
     return '';
+  }
+
+  for (const image_ext of image_exts) {
+    if (filename.endsWith(image_ext)) {
+      log.debug(`Skipping image file: ${filename}`);
+      return '';
+    }
   }
 
   if (filename.endsWith('.yaml')) {
@@ -120,27 +138,18 @@ let transformer = (content, filename) => {
     lint = cache.get(key + '.lint');
   }
   catch(err) {
-    let results = linter.verify(content, eslint_opts, filename);
-    let [errors, warnings] = results.reduce(
-      (agg, result) => {
-        agg[result.severity - 1]++;
-        return agg;
-      },
-      [0, 0]
-    );
-    lint = {errors, warnings, results};
+    lint = filename.indexOf('node_modules') !== -1 ? {errorCount: 0, warningCount: 0, results: []} : cli.executeOnText(content, filename);
     cache.put(key + '.lint', lint);
   }
 
-  __linting__.results.push({
-    filePath: filename,
-    messages: lint.results,
-    errorCount: lint.errors,
-    warningCount: lint.warnings
-  });
+  const {results, warningCount, errorCount} = lint;
+  if (results.length > 0) {
 
-  __linting__.errorCount += lint.errors;
-  __linting__.warningCount += lint.warnings;
+  __linting__.results.push(...results);
+  __linting__.errorCount += lint.errorCount;
+  __linting__.warningCount += lint.warningCount;
+
+  }
 
   try {
     sourcemap_cache[filename] = key + '.map';

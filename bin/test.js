@@ -3,8 +3,6 @@
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
 var _setpath = require('./setpath');
 
 var _setpath2 = _interopRequireDefault(_setpath);
@@ -65,6 +63,8 @@ var _eslintPluginBabel2 = _interopRequireDefault(_eslintPluginBabel);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 var sourcemap_cache = {};
 
 _sourceMapSupport2.default.install({
@@ -92,10 +92,11 @@ global.__linting__ = {
   warningCount: 0
 };
 
-var cli = new _eslint.CLIEngine({
+var cli = new _eslint.CLIEngine(_extends({
   ignore: true,
-  useEslintrc: true
-});
+  useEslintrc: true,
+  cache: false
+}, _utils.eslint_opts));
 
 cli.addPlugin('eslint-plugin-babel', _eslintPluginBabel2.default);
 
@@ -113,10 +114,38 @@ process.on('beforeExit', function () {
   _fs2.default.writeFileSync('reports/style/index.html', html_formatter(__linting__.results));
 
   var collector = new _istanbul.Collector();
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = Object.keys(__coverage__)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var key = _step.value;
+
+      if (key.indexOf('node_modules') !== -1) {
+        delete __coverage__[key];
+      }
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
   collector.add(__coverage__);
-  collector.files().forEach(function (file) {
-    var file_coverage = collector.fileCoverageFor(file);
-  });
+  //collector.files().forEach(file => {
+  //  let file_coverage = collector.fileCoverageFor(file);
+  //});
+
   var final_coverage = collector.getFinalCoverage();
 
   var reporter = new _istanbul.Reporter(false, 'reports/coverage');
@@ -131,11 +160,41 @@ process.on('beforeExit', function () {
   process.exit(0);
 });
 
+var image_exts = ['svg', 'png', 'jpg', 'gif'];
+
 var transformer = function transformer(content, filename) {
   _utils.log.debug('Processing file: ' + filename);
   if (filename.endsWith('.css') || filename.endsWith('.scss')) {
     _utils.log.debug('Skipping style file: ' + filename);
     return '';
+  }
+
+  var _iteratorNormalCompletion2 = true;
+  var _didIteratorError2 = false;
+  var _iteratorError2 = undefined;
+
+  try {
+    for (var _iterator2 = image_exts[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var image_ext = _step2.value;
+
+      if (filename.endsWith(image_ext)) {
+        _utils.log.debug('Skipping image file: ' + filename);
+        return '';
+      }
+    }
+  } catch (err) {
+    _didIteratorError2 = true;
+    _iteratorError2 = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion2 && _iterator2.return) {
+        _iterator2.return();
+      }
+    } finally {
+      if (_didIteratorError2) {
+        throw _iteratorError2;
+      }
+    }
   }
 
   if (filename.endsWith('.yaml')) {
@@ -165,31 +224,22 @@ var transformer = function transformer(content, filename) {
   try {
     lint = _utils.cache.get(key + '.lint');
   } catch (err) {
-    var results = _eslint.linter.verify(content, _utils.eslint_opts, filename);
-
-    var _results$reduce = results.reduce(function (agg, result) {
-      agg[result.severity - 1]++;
-      return agg;
-    }, [0, 0]);
-
-    var _results$reduce2 = _slicedToArray(_results$reduce, 2);
-
-    var errors = _results$reduce2[0];
-    var warnings = _results$reduce2[1];
-
-    lint = { errors: errors, warnings: warnings, results: results };
+    lint = filename.indexOf('node_modules') !== -1 ? { errorCount: 0, warningCount: 0, results: [] } : cli.executeOnText(content, filename);
     _utils.cache.put(key + '.lint', lint);
   }
 
-  __linting__.results.push({
-    filePath: filename,
-    messages: lint.results,
-    errorCount: lint.errors,
-    warningCount: lint.warnings
-  });
+  var _lint = lint,
+      results = _lint.results,
+      warningCount = _lint.warningCount,
+      errorCount = _lint.errorCount;
 
-  __linting__.errorCount += lint.errors;
-  __linting__.warningCount += lint.warnings;
+  if (results.length > 0) {
+    var _linting__$results;
+
+    (_linting__$results = __linting__.results).push.apply(_linting__$results, _toConsumableArray(results));
+    __linting__.errorCount += lint.errorCount;
+    __linting__.warningCount += lint.warningCount;
+  }
 
   try {
     sourcemap_cache[filename] = key + '.map';
