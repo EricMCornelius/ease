@@ -91,7 +91,8 @@ let webpack_settings = _.defaultsDeep(rest, {
         generateStatsFile: true
       }),
       new DashboardPlugin()
-    ])
+    ]),
+    new webpack.optimize.ModuleConcatenationPlugin()
   ],
   module: {
     rules: [{

@@ -47,7 +47,8 @@ let webpack_settings = _.defaultsDeep(rest, {
     new webpack.LoaderOptionsPlugin({
       minimize: true,
       debug: false
-    })
+    }),
+    new webpack.optimize.ModuleConcatenationPlugin()
   ],
   module: {
     rules: [{

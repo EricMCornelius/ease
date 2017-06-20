@@ -126,7 +126,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
     analyzerMode: 'static',
     openAnalyzer: true,
     generateStatsFile: true
-  }), new _plugin2.default()])),
+  }), new _plugin2.default()]), [new _webpack2.default.optimize.ModuleConcatenationPlugin()]),
   module: {
     rules: [{
       enforce: 'pre',

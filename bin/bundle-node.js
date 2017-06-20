@@ -65,7 +65,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
   }), new _webpack2.default.LoaderOptionsPlugin({
     minimize: true,
     debug: false
-  })],
+  }), new _webpack2.default.optimize.ModuleConcatenationPlugin()],
   module: {
     rules: [{
       enforce: 'pre',
