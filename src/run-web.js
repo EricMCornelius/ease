@@ -10,7 +10,6 @@ import patcher from './module_patch';
 import {formatter, webpack_opts, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import DashboardPlugin from 'webpack-dashboard/plugin';
 
 const entry = path.resolve(process.argv[2]);
@@ -73,7 +72,6 @@ let webpack_settings = _.defaultsDeep(rest, {
       'process.env.NODE_ENV': '"dev"'
     }),
     new webpack.HotModuleReplacementPlugin(),
-    new ExtractTextPlugin(name ? `${name}.css` : '[name].css'),
     new DashboardPlugin()
   ],
   module: {
@@ -111,27 +109,7 @@ let webpack_settings = _.defaultsDeep(rest, {
     }, {
       enforce: 'post',
       test: /\.s?css$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              sourceMap: true,
-              modules: false,
-            }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              plugins: () => [precss, autoprefixer]
-            }
-          },
-          {
-            loader: 'sass-loader',
-          }
-        ]
-      })
+      use: ['style-loader', 'css-loader', 'sass-loader']
     }, {
       enforce: 'post',
       test: /\.json$/,

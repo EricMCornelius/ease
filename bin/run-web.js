@@ -37,10 +37,6 @@ var _autoprefixer = require('autoprefixer');
 
 var _autoprefixer2 = _interopRequireDefault(_autoprefixer);
 
-var _extractTextWebpackPlugin = require('extract-text-webpack-plugin');
-
-var _extractTextWebpackPlugin2 = _interopRequireDefault(_extractTextWebpackPlugin);
-
 var _plugin = require('webpack-dashboard/plugin');
 
 var _plugin2 = _interopRequireDefault(_plugin);
@@ -116,7 +112,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
     names: ['vendor', 'manifest']
   }), new _webpack2.default.DefinePlugin({
     'process.env.NODE_ENV': '"dev"'
-  }), new _webpack2.default.HotModuleReplacementPlugin(), new _extractTextWebpackPlugin2.default(name ? name + '.css' : '[name].css'), new _plugin2.default()],
+  }), new _webpack2.default.HotModuleReplacementPlugin(), new _plugin2.default()],
   module: {
     rules: [{
       enforce: 'pre',
@@ -152,25 +148,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
     }, {
       enforce: 'post',
       test: /\.s?css$/,
-      use: _extractTextWebpackPlugin2.default.extract({
-        fallback: 'style-loader',
-        use: [{
-          loader: 'css-loader',
-          options: {
-            sourceMap: true,
-            modules: false
-          }
-        }, {
-          loader: 'postcss-loader',
-          options: {
-            plugins: function plugins() {
-              return [_precss2.default, _autoprefixer2.default];
-            }
-          }
-        }, {
-          loader: 'sass-loader'
-        }]
-      })
+      use: ['style-loader', 'css-loader', 'sass-loader']
     }, {
       enforce: 'post',
       test: /\.json$/,
