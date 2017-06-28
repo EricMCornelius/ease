@@ -19,7 +19,6 @@ import jv from 'junit-viewer';
 
 import polyfill from 'babel-polyfill';
 import sourcemaps from 'source-map-support';
-import plugin from 'eslint-plugin-babel';
 
 const sourcemap_cache = {};
 
@@ -52,8 +51,6 @@ let cli = new CLIEngine({
   cache: false,
   ...eslint_opts
 });
-
-cli.addPlugin('eslint-plugin-babel', plugin);
 
 babel_opts.plugins.push('__coverage__');
 

@@ -157,7 +157,7 @@ var eslint_default_opts = {
     'no-trailing-spaces': [2, { 'skipBlankLines': true }],
     'no-var': 2,
     'arrow-body-style': [2, 'as-needed'],
-    'babel/arrow-parens': [2, 'as-needed'],
+    'arrow-parens': [2, 'as-needed'],
     'constructor-super': 2,
     'no-console': 2,
     'no-debugger': 2,
@@ -189,8 +189,7 @@ var eslint_default_opts = {
     'indent': [2, 2, { 'SwitchCase': 1 }],
     'brace-style': [2, 'stroustrup', { 'allowSingleLine': true }],
     'camelcase': 0
-  },
-  'plugins': ['babel']
+  }
 };
 
 // set the default opts to the .eslintrc contents if they exist, otherwise use ease defaults
