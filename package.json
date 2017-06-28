@@ -1,6 +1,6 @@
 {
   "name": "ease",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Simple babel transpilation, istanbul code coverage, mocha unit testing, and webpack building",
   "main": "index.js",
   "scripts": {},
