@@ -9,7 +9,6 @@ import patcher from './module_patch';
 import {formatter, webpack_opts, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 import DashboardPlugin from 'webpack-dashboard/plugin';
 
@@ -83,15 +82,6 @@ let webpack_settings = _.defaultsDeep(rest, {
       compress: true,
       comments: false
     }),
-    new ExtractTextPlugin(name ? `${name}.css` : '[name].css'),
-    ...(headless ? [] : [
-      new BundleAnalyzerPlugin({
-        analyzerMode: 'static',
-        openAnalyzer: true,
-        generateStatsFile: true
-      }),
-      new DashboardPlugin()
-    ]),
     new webpack.optimize.ModuleConcatenationPlugin()
   ],
   module: {
@@ -124,27 +114,7 @@ let webpack_settings = _.defaultsDeep(rest, {
     }, {
       enforce: 'post',
       test: /\.s?css$/,
-      use: ExtractTextPlugin.extract({
-        fallback: 'style-loader',
-        use: [
-          {
-            loader: 'css-loader',
-            options: {
-              sourceMap: true,
-              modules: false,
-            }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              plugins: () => [precss, autoprefixer]
-            }
-          },
-          {
-            loader: 'sass-loader',
-          }
-        ]
-      })
+      use: ['style-loader', 'css-loader', 'sass-loader']
     }, {
       enforce: 'post',
       test: /\.json$/,
