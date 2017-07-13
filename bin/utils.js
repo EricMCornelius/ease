@@ -139,9 +139,16 @@ var mocha_default_opts = {
 var eslint_opts = {};
 
 var eslint_default_opts = {
-  'parser': 'babel-eslint',
   'env': {
     'node': true
+  },
+  parserOptions: {
+    ecmaVersion: 8,
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true,
+      experimentalObjectRestSpread: true
+    }
   },
   'extends': 'eslint:recommended',
   'rules': {

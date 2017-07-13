@@ -106,9 +106,16 @@ const mocha_default_opts = {
 let eslint_opts = {};
 
 let eslint_default_opts = {
-  'parser': 'babel-eslint',
   'env': {
     'node': true
+  },
+  parserOptions: {
+    ecmaVersion: 8,
+    sourceType: 'module',
+    ecmaFeatures: {
+      jsx: true,
+      experimentalObjectRestSpread: true
+    }
   },
   'extends': 'eslint:recommended',
   'rules': {
