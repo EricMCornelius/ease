@@ -23,6 +23,8 @@ var _module_patch2 = _interopRequireDefault(_module_patch);
 
 var _utils = require('./utils');
 
+var _webpackBundleAnalyzer = require('webpack-bundle-analyzer');
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
@@ -40,6 +42,13 @@ var hook = _utils.webpack_opts.hook,
     port = _utils.webpack_opts.port,
     name = _utils.webpack_opts.name,
     rest = _objectWithoutProperties(_utils.webpack_opts, ['hook', 'reload_url', 'port', 'name']);
+
+var analyzer = new _webpackBundleAnalyzer.BundleAnalyzerPlugin({
+  analyzerMode: 'static',
+  reportFilename: 'report.html',
+  openAnalyzer: false,
+  logLevel: 'info'
+});
 
 var webpack_settings = _lodash2.default.defaultsDeep(rest, {
   entry: entry,
@@ -65,7 +74,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
   }), new _webpack2.default.LoaderOptionsPlugin({
     minimize: true,
     debug: false
-  }), new _webpack2.default.optimize.ModuleConcatenationPlugin()],
+  }), new _webpack2.default.optimize.ModuleConcatenationPlugin(), analyzer],
   module: {
     rules: [{
       enforce: 'pre',

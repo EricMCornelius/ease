@@ -8,6 +8,8 @@ import path from 'path';
 import patcher from './module_patch';
 import {formatter, webpack_opts, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
 
+import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
+
 const entry = path.resolve(process.argv[2]);
 const pathname = path.resolve(process.argv[3]);
 const directory = path.dirname(pathname);
@@ -17,6 +19,13 @@ const libname = filename.split('.')[0];
 patcher(standard_transformer, standard_resolver);
 
 const {hook, reload_url, port, name, ...rest} = webpack_opts;
+
+const analyzer = new BundleAnalyzerPlugin({
+  analyzerMode: 'static',
+  reportFilename: 'report.html',
+  openAnalyzer: false,
+  logLevel: 'info'
+});
 
 let webpack_settings = _.defaultsDeep(rest, {
   entry,
@@ -48,7 +57,8 @@ let webpack_settings = _.defaultsDeep(rest, {
       minimize: true,
       debug: false
     }),
-    new webpack.optimize.ModuleConcatenationPlugin()
+    new webpack.optimize.ModuleConcatenationPlugin(),
+    analyzer
   ],
   module: {
     rules: [{
