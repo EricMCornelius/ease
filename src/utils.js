@@ -88,7 +88,7 @@ const formatter = (percentage, message) => {
 let babel_opts = {};
 const babel_default_opts = {
   babelrc: false,
-  presets: [['es2015', {modules: 'commonjs'}], 'react', 'stage-2'],
+  presets: ['env', 'react', 'stage-2'],
   plugins: ['syntax-decorators', 'transform-decorators-legacy', 'transform-export-extensions']
 };
 
@@ -222,11 +222,13 @@ try {
     babel_opts = config_babel_opts;
   }
   else if (targets) {
+    // if targets are provided, set up babel env preset
+
     const plugins = config_babel_opts.plugins || [];
     const presets = config_babel_opts.presets || [];
 
     babel_opts = {
-      presets: [['env', {targets, debug: true}], ...presets],
+      presets: [['env', {targets, debug: true}], ...presets.filter(name => name !== 'env')],
       plugins
     };
   }

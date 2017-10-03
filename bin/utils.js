@@ -121,7 +121,7 @@ var formatter = function formatter(percentage, message) {
 var babel_opts = {};
 var babel_default_opts = {
   babelrc: false,
-  presets: [['es2015', { modules: 'commonjs' }], 'react', 'stage-2'],
+  presets: ['env', 'react', 'stage-2'],
   plugins: ['syntax-decorators', 'transform-decorators-legacy', 'transform-export-extensions']
 };
 
@@ -259,11 +259,15 @@ try {
   if (override) {
     exports.babel_opts = babel_opts = config_babel_opts;
   } else if (targets) {
+    // if targets are provided, set up babel env preset
+
     var plugins = config_babel_opts.plugins || [];
     var presets = config_babel_opts.presets || [];
 
     exports.babel_opts = babel_opts = {
-      presets: [['env', { targets: targets, debug: true }]].concat(_toConsumableArray(presets)),
+      presets: [['env', { targets: targets, debug: true }]].concat(_toConsumableArray(presets.filter(function (name) {
+        return name !== 'env';
+      }))),
       plugins: plugins
     };
   } else {
