@@ -9,5 +9,4 @@ build
 coverage
 dist
 data
-bin
 .ease_cache
