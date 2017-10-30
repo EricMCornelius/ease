@@ -37,10 +37,6 @@ var _autoprefixer = require('autoprefixer');
 
 var _autoprefixer2 = _interopRequireDefault(_autoprefixer);
 
-var _plugin = require('webpack-dashboard/plugin');
-
-var _plugin2 = _interopRequireDefault(_plugin);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
@@ -112,7 +108,9 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
     names: ['vendor', 'manifest']
   }), new _webpack2.default.DefinePlugin({
     'process.env.NODE_ENV': '"dev"'
-  }), new _webpack2.default.HotModuleReplacementPlugin(), new _plugin2.default()],
+  }), new _webpack2.default.HotModuleReplacementPlugin()
+  // new DashboardPlugin()
+  ],
   module: {
     rules: [{
       enforce: 'pre',

@@ -35,10 +35,6 @@ var _autoprefixer2 = _interopRequireDefault(_autoprefixer);
 
 var _webpackBundleAnalyzer = require('webpack-bundle-analyzer');
 
-var _plugin = require('webpack-dashboard/plugin');
-
-var _plugin2 = _interopRequireDefault(_plugin);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }

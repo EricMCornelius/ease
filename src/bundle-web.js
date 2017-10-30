@@ -10,7 +10,6 @@ import {formatter, webpack_opts, babel_opts, standard_transformer, standard_tran
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
-import DashboardPlugin from 'webpack-dashboard/plugin';
 
 const source = path.resolve(process.argv[2]);
 const target = process.argv[3];
