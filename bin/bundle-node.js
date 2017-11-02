@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 'use strict';
 
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
 var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
@@ -27,6 +29,8 @@ var _webpackBundleAnalyzer = require('webpack-bundle-analyzer');
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
 var entry = _path2.default.resolve(process.argv[2]);
@@ -41,13 +45,23 @@ var hook = _utils.webpack_opts.hook,
     reload_url = _utils.webpack_opts.reload_url,
     port = _utils.webpack_opts.port,
     name = _utils.webpack_opts.name,
-    rest = _objectWithoutProperties(_utils.webpack_opts, ['hook', 'reload_url', 'port', 'name']);
+    _webpack_opts$replace = _utils.webpack_opts.replacements,
+    replacements = _webpack_opts$replace === undefined ? [] : _webpack_opts$replace,
+    rest = _objectWithoutProperties(_utils.webpack_opts, ['hook', 'reload_url', 'port', 'name', 'replacements']);
 
 var analyzer = new _webpackBundleAnalyzer.BundleAnalyzerPlugin({
   analyzerMode: 'static',
   reportFilename: 'report.html',
   openAnalyzer: false,
   logLevel: 'info'
+});
+
+var replacement_plugins = replacements.map(function (_ref) {
+  var _ref2 = _slicedToArray(_ref, 2),
+      key = _ref2[0],
+      value = _ref2[1];
+
+  return new _webpack2.default.NormalModuleReplacementPlugin(key, value);
 });
 
 var webpack_settings = _lodash2.default.defaultsDeep(rest, {
@@ -74,7 +88,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
   }), new _webpack2.default.LoaderOptionsPlugin({
     minimize: true,
     debug: false
-  }), new _webpack2.default.optimize.ModuleConcatenationPlugin(), analyzer],
+  })].concat(_toConsumableArray(replacement_plugins), [new _webpack2.default.optimize.ModuleConcatenationPlugin(), analyzer]),
   module: {
     rules: [{
       enforce: 'pre',

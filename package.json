@@ -1,6 +1,6 @@
 {
   "name": "ease",
-  "version": "0.3.12",
+  "version": "0.3.13",
   "description": "Simple babel transpilation, istanbul code coverage, mocha unit testing, and webpack building",
   "main": "index.js",
   "scripts": {},
@@ -71,7 +71,8 @@
     "ease-run": "./bin/run.js",
     "ease-run-web": "./bin/run-web.js",
     "ease-bundle-node": "./bin/bundle-node.js",
-    "ease-bundle-web": "./bin/bundle-web.js"
+    "ease-bundle-web": "./bin/bundle-web.js",
+    "ease-version": "./bin/version.js"
   },
   "publishConfig": {
     "registry": "https://nexus.map.mandiant.com/content/repositories/npm-internal/"

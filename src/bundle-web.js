@@ -9,6 +9,7 @@ import patcher from './module_patch';
 import {formatter, webpack_opts, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
 import precss from 'precss';
 import autoprefixer from 'autoprefixer';
+
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
 
 const source = path.resolve(process.argv[2]);
@@ -22,7 +23,16 @@ const filename = target ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-let {build_dir = directory, public_path, hook, reload_url, host, port, name = filename, vendor = [], type, ...rest} = webpack_opts;
+let {build_dir = directory, public_path, hook, reload_url, host, port, name = filename, vendor = [], replacements = [], type, ...rest} = webpack_opts;
+
+const analyzer = new BundleAnalyzerPlugin({
+  analyzerMode: 'static',
+  reportFilename: 'report.html',
+  openAnalyzer: false,
+  logLevel: 'info'
+});
+
+const replacement_plugins = replacements.map(([key, value]) => new webpack.NormalModuleReplacementPlugin(key, value));
 
 const resolve = val => path.resolve(__dirname, '../node_modules', val);
 const polyfill_deps = type === 'lib' ? [] : ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
@@ -81,7 +91,9 @@ let webpack_settings = _.defaultsDeep(rest, {
       compress: true,
       comments: false
     }),
-    new webpack.optimize.ModuleConcatenationPlugin()
+    ...replacement_plugins,
+    new webpack.optimize.ModuleConcatenationPlugin(),
+    analyzer
   ],
   module: {
     rules: [{

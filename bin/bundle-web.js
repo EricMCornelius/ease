@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 'use strict';
 
-var _ref;
+var _ref3;
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var _lodash = require('lodash');
 
@@ -65,8 +67,25 @@ var _webpack_opts$build_d = _utils.webpack_opts.build_dir,
     name = _webpack_opts$name === undefined ? filename : _webpack_opts$name,
     _webpack_opts$vendor = _utils.webpack_opts.vendor,
     vendor = _webpack_opts$vendor === undefined ? [] : _webpack_opts$vendor,
+    _webpack_opts$replace = _utils.webpack_opts.replacements,
+    replacements = _webpack_opts$replace === undefined ? [] : _webpack_opts$replace,
     type = _utils.webpack_opts.type,
-    rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'public_path', 'hook', 'reload_url', 'host', 'port', 'name', 'vendor', 'type']);
+    rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'public_path', 'hook', 'reload_url', 'host', 'port', 'name', 'vendor', 'replacements', 'type']);
+
+var analyzer = new _webpackBundleAnalyzer.BundleAnalyzerPlugin({
+  analyzerMode: 'static',
+  reportFilename: 'report.html',
+  openAnalyzer: false,
+  logLevel: 'info'
+});
+
+var replacement_plugins = replacements.map(function (_ref) {
+  var _ref2 = _slicedToArray(_ref, 2),
+      key = _ref2[0],
+      value = _ref2[1];
+
+  return new _webpack2.default.NormalModuleReplacementPlugin(key, value);
+});
 
 var resolve = function resolve(val) {
   return _path2.default.resolve(__dirname, '../node_modules', val);
@@ -76,7 +95,7 @@ var polyfill_deps = type === 'lib' ? [] : ['babel-polyfill/dist/polyfill.min.js'
 vendor = [].concat(_toConsumableArray(polyfill_deps), _toConsumableArray(vendor));
 if (vendor.length === 1) vendor = vendor[0];
 
-var entry = vendor.length > 0 ? (_ref = {}, _defineProperty(_ref, name, source), _defineProperty(_ref, 'vendor', vendor), _ref) : _defineProperty({}, name, source);
+var entry = vendor.length > 0 ? (_ref3 = {}, _defineProperty(_ref3, name, source), _defineProperty(_ref3, 'vendor', vendor), _ref3) : _defineProperty({}, name, source);
 
 var output = type === 'lib' ? {
   path: _path2.default.resolve(build_dir),
@@ -114,7 +133,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
     mangle: true,
     compress: true,
     comments: false
-  }), new _webpack2.default.optimize.ModuleConcatenationPlugin()]),
+  })], _toConsumableArray(replacement_plugins), [new _webpack2.default.optimize.ModuleConcatenationPlugin(), analyzer]),
   module: {
     rules: [{
       enforce: 'pre',

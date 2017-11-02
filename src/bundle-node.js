@@ -18,7 +18,7 @@ const libname = filename.split('.')[0];
 
 patcher(standard_transformer, standard_resolver);
 
-const {hook, reload_url, port, name, ...rest} = webpack_opts;
+const {hook, reload_url, port, name, replacements = [], ...rest} = webpack_opts;
 
 const analyzer = new BundleAnalyzerPlugin({
   analyzerMode: 'static',
@@ -26,6 +26,8 @@ const analyzer = new BundleAnalyzerPlugin({
   openAnalyzer: false,
   logLevel: 'info'
 });
+
+const replacement_plugins = replacements.map(([key, value]) => new webpack.NormalModuleReplacementPlugin(key, value));
 
 let webpack_settings = _.defaultsDeep(rest, {
   entry,
@@ -57,6 +59,7 @@ let webpack_settings = _.defaultsDeep(rest, {
       minimize: true,
       debug: false
     }),
+    ...replacement_plugins,
     new webpack.optimize.ModuleConcatenationPlugin(),
     analyzer
   ],
