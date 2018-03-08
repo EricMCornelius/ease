@@ -122,18 +122,12 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
     'regenerator': true
   }],
   target: 'web',
-  plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter)].concat(_toConsumableArray(type === 'lib' ? [] : [new _webpack2.default.optimize.CommonsChunkPlugin({ names: ['vendor', 'manifest'] })]), [new _webpack2.default.DefinePlugin({
+  plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.DefinePlugin({
     'process.env.NODE_ENV': '"production"'
   }), new _webpack2.default.LoaderOptionsPlugin({
     minimize: true,
     debug: false
-  }), new _webpack2.default.optimize.UglifyJsPlugin({
-    beautify: false,
-    sourceMap: true,
-    mangle: true,
-    compress: true,
-    comments: false
-  })], _toConsumableArray(replacement_plugins), [new _webpack2.default.optimize.ModuleConcatenationPlugin(), analyzer]),
+  })].concat(_toConsumableArray(replacement_plugins), [new _webpack2.default.optimize.ModuleConcatenationPlugin(), analyzer]),
   module: {
     rules: [{
       enforce: 'pre',
@@ -167,11 +161,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
       use: ['style-loader', 'css-loader', 'sass-loader']
     }, {
       enforce: 'post',
-      test: /\.json$/,
-      loaders: ['json-loader']
-    }, {
-      enforce: 'post',
-      test: /\.yaml$/,
+      test: /\.ya?ml$/,
       loaders: ['json-loader', 'yaml-loader']
     }, {
       enforce: 'post',

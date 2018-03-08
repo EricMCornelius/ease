@@ -76,20 +76,12 @@ let webpack_settings = _.defaultsDeep(rest, {
   target: 'web',
   plugins: [
     new webpack.ProgressPlugin(formatter),
-    ...(type === 'lib' ? [] : [new webpack.optimize.CommonsChunkPlugin({ names: ['vendor', 'manifest'] })]),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"production"'
     }),
     new webpack.LoaderOptionsPlugin({
       minimize: true,
       debug: false
-    }),
-    new webpack.optimize.UglifyJsPlugin({
-      beautify: false,
-      sourceMap: true,
-      mangle: true,
-      compress: true,
-      comments: false
     }),
     ...replacement_plugins,
     new webpack.optimize.ModuleConcatenationPlugin(),
@@ -126,13 +118,10 @@ let webpack_settings = _.defaultsDeep(rest, {
       enforce: 'post',
       test: /\.s?css$/,
       use: ['style-loader', 'css-loader', 'sass-loader']
-    }, {
+    },
+    {
       enforce: 'post',
-      test: /\.json$/,
-      loaders: ['json-loader']
-    }, {
-      enforce: 'post',
-      test: /\.yaml$/,
+      test: /\.ya?ml$/,
       loaders: ['json-loader', 'yaml-loader']
     }, {
       enforce: 'post',

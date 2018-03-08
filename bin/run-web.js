@@ -104,9 +104,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
     'external': true,
     'regenerator': true
   }],
-  plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.optimize.CommonsChunkPlugin({
-    names: ['vendor', 'manifest']
-  }), new _webpack2.default.DefinePlugin({
+  plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.DefinePlugin({
     'process.env.NODE_ENV': '"dev"'
   }), new _webpack2.default.HotModuleReplacementPlugin()
   // new DashboardPlugin()
