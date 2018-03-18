@@ -52,7 +52,7 @@ let cli = new CLIEngine({
   ...eslint_opts
 });
 
-babel_opts.plugins.push('__coverage__');
+babel_opts.plugins.push('istanbul');
 
 process.on('beforeExit', () => {
   mkdirp.sync('reports/coverage');

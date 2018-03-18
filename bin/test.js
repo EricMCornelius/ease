@@ -94,7 +94,7 @@ var cli = new _eslint.CLIEngine(_extends({
   cache: false
 }, _utils.eslint_opts));
 
-_utils.babel_opts.plugins.push('__coverage__');
+_utils.babel_opts.plugins.push('istanbul');
 
 process.on('beforeExit', function () {
   _mkdirp2.default.sync('reports/coverage');
