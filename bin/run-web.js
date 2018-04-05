@@ -114,10 +114,6 @@ let webpack_settings = _lodash2.default.defaultsDeep(rest, {
       use: ['style-loader', 'css-loader', 'sass-loader']
     }, {
       enforce: 'post',
-      test: /\.json$/,
-      loaders: ['json-loader']
-    }, {
-      enforce: 'post',
       test: /\.yaml$/,
       loaders: ['json-loader', 'yaml-loader']
     }, {

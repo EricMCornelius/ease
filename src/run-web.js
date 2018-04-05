@@ -90,10 +90,6 @@ let webpack_settings = _.defaultsDeep(rest, {
       use: ['style-loader', 'css-loader', 'sass-loader']
     }, {
       enforce: 'post',
-      test: /\.json$/,
-      loaders: ['json-loader']
-    }, {
-      enforce: 'post',
       test: /\.yaml$/,
       loaders: ['json-loader', 'yaml-loader']
     }, {
