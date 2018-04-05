@@ -13,9 +13,9 @@ var _webpack = require('webpack');
 
 var _webpack2 = _interopRequireDefault(_webpack);
 
-var _webpackDevServer = require('webpack-dev-server');
+var _webpackServe = require('webpack-serve');
 
-var _webpackDevServer2 = _interopRequireDefault(_webpackDevServer);
+var _webpackServe2 = _interopRequireDefault(_webpackServe);
 
 var _path = require('path');
 
@@ -48,23 +48,16 @@ const filename = output ? _path2.default.basename(pathname) : 'bundle';
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-let { build_dir, host = 'localhost', port = 8888, reload_url, public_path = directory, hook, name = filename, type } = _utils.webpack_opts,
-    rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'host', 'port', 'reload_url', 'public_path', 'hook', 'name', 'type']);
-
-if (port && !reload_url) {
-  reload_url = `http://${host}:${port}`;
-}
+let { build_dir, host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type } = _utils.webpack_opts,
+    rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'host', 'port', 'public_path', 'hook', 'name', 'type']);
 
 const resolve = val => _path2.default.resolve(__dirname, '../node_modules', val);
-
-const reload_deps = [`webpack-dev-server/client`, 'webpack/hot/only-dev-server'].map(resolve);
-reload_deps[0] += `?${reload_url}`;
 
 const polyfill_deps = ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
 
 let webpack_settings = _lodash2.default.defaultsDeep(rest, {
   entry: {
-    [name]: [...reload_deps, entry]
+    [name]: entry
   },
   output: {
     path: directory,
@@ -164,13 +157,4 @@ const webpack_config = (0, _webpack2.default)(remainder, (err, stats) => {
   console.log(stats.toString('normal'));
 });
 
-const { host: server_host, port: server_port } = server,
-      server_config = _objectWithoutProperties(server, ['host', 'port']);
-
-new _webpackDevServer2.default(webpack_config, server_config).listen(server_port, server_host, (err, result) => {
-  if (err) {
-    return console.error(err);
-  }
-
-  console.log(`Listening at ${host}:${port}`);
-});
+(0, _webpackServe2.default)(Object.assign({ config: webpack_config }, server));

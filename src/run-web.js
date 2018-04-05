@@ -4,7 +4,7 @@ import setpath from './setpath';
 import _ from 'lodash';
 
 import webpack from 'webpack';
-import webpack_dev_server from 'webpack-dev-server';
+import serve from 'webpack-serve';
 import path from 'path';
 import patcher from './module_patch';
 import {formatter, webpack_opts, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
@@ -20,25 +20,15 @@ const filename = output ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-let {build_dir, host = 'localhost', port = 8888, reload_url, public_path = directory, hook, name = filename, type, ...rest} = webpack_opts;
-
-if (port && !reload_url) {
-  reload_url = `http://${host}:${port}`;
-}
+let {build_dir, host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type, ...rest} = webpack_opts;
 
 const resolve = val => path.resolve(__dirname, '../node_modules', val);
-
-const reload_deps = [`webpack-dev-server/client`, 'webpack/hot/only-dev-server'].map(resolve);
-reload_deps[0] += `?${reload_url}`;
 
 const polyfill_deps = ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
 
 let webpack_settings = _.defaultsDeep(rest, {
   entry: {
-    [name]: [
-      ...reload_deps,
-      entry
-    ]
+    [name]: entry
   },
   output: {
     path: directory,
@@ -142,12 +132,4 @@ const webpack_config = webpack(remainder, (err, stats) => {
   console.log(stats.toString('normal'));
 });
 
-const {host: server_host, port: server_port, ...server_config} = server;
-
-new webpack_dev_server(webpack_config, server_config).listen(server_port, server_host, (err, result) => {
-  if (err) {
-    return console.error(err);
-  }
-
-  console.log(`Listening at ${host}:${port}`);
-});
+serve({config: webpack_config, ...server});
