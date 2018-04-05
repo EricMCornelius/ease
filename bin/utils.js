@@ -29,40 +29,29 @@ var _cache2 = _interopRequireDefault(_cache);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
-var cache_dir = _path2.default.resolve('.ease_cache');
+const cache_dir = _path2.default.resolve('.ease_cache');
 
-var get_cache = function get_cache() {
-  return new _cache2.default({ dir: cache_dir });
-};
+const get_cache = () => new _cache2.default({ dir: cache_dir });
 
-var get_packages = function get_packages(dir) {
-  return (0, _shelljs.find)(dir).filter(function (file) {
-    return (/package\.json$/.test(file)
-    );
-  });
-};
+const get_packages = dir => (0, _shelljs.find)(dir).filter(file => /package\.json$/.test(file));
 
-var get_ease_deps = function get_ease_deps(dir) {
-  return get_packages(dir).reduce(function (agg, file) {
-    var dir = _path2.default.dirname(file);
-    var dep = _path2.default.basename(dir);
-    if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1 && dep.indexOf('source-map-support') === -1) {
-      return agg;
-    }
-    agg[dep] = dir;
+const get_ease_deps = dir => get_packages(dir).reduce((agg, file) => {
+  const dir = _path2.default.dirname(file);
+  const dep = _path2.default.basename(dir);
+  if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1 && dep.indexOf('source-map-support') === -1) {
     return agg;
-  }, {});
-};
+  }
+  agg[dep] = dir;
+  return agg;
+}, {});
 
-var ease_dep_dir = _path2.default.resolve(__dirname, '../node_modules');
+const ease_dep_dir = _path2.default.resolve(__dirname, '../node_modules');
 
-var cache = get_cache();
+const cache = get_cache();
 
-var ease_deps = null;
+let ease_deps = null;
 try {
   ease_deps = cache.get('.ease_deps');
 } catch (err) {
@@ -70,45 +59,36 @@ try {
   cache.put('.ease_deps', ease_deps);
 }
 
-var project_package = '';
+let project_package = '';
 try {
   project_package = _fs2.default.readFileSync('package.json');
 } catch (err) {}
 
-var project_dep_trie = null;
-var project_deps_key = cache.hash(project_package) + '.deps';
+let project_dep_trie = null;
+const project_deps_key = `${cache.hash(project_package)}.deps`;
 try {
   project_dep_trie = cache.get(project_deps_key);
 } catch (err) {
-  project_dep_trie = get_packages(process.cwd()).map(function (dep) {
-    return dep.split('/');
-  }).reduce(function (agg, parts) {
-    return _lodash2.default.set(agg, parts, {});
-  }, {});
+  project_dep_trie = get_packages(process.cwd()).map(dep => dep.split('/')).reduce((agg, parts) => _lodash2.default.set(agg, parts, {}), {});
   cache.put(project_deps_key, project_dep_trie);
 }
 
-var matching_prefixes_impl = function matching_prefixes_impl(node, path) {
-  var curr = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-  var results = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
-
+const matching_prefixes_impl = (node, path, curr = [], results = []) => {
   if (path.length === 0) {
     return results;
   }
 
-  var next = path.shift();
-  var lookup = node[next];
+  const next = path.shift();
+  const lookup = node[next];
   curr = curr.concat(next);
 
   return lookup ? matching_prefixes_impl(lookup, path, curr, lookup['package.json'] ? results.concat(curr.join('/')) : results) : results;
 };
 
-var matching_prefixes = function matching_prefixes(path) {
-  return matching_prefixes_impl(project_dep_trie, path.split('/')).reverse();
-};
+const matching_prefixes = path => matching_prefixes_impl(project_dep_trie, path.split('/')).reverse();
 
-var formatter = function formatter(percentage, message) {
-  var formatted = (100.0 * percentage).toFixed(1) + '%: ' + message;
+const formatter = (percentage, message) => {
+  const formatted = `${(100.0 * percentage).toFixed(1)}%: ${message}`;
   if (_lodash2.default.isFunction(process.stdout.clearLine)) {
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
@@ -118,15 +98,15 @@ var formatter = function formatter(percentage, message) {
   }
 };
 
-var babel_opts = {};
-var babel_default_opts = {
+let babel_opts = {};
+const babel_default_opts = {
   babelrc: false,
   presets: ['env', 'react', 'stage-2'],
   plugins: ['syntax-decorators', 'transform-decorators-legacy', 'transform-export-extensions']
 };
 
-var mocha_opts = {};
-var mocha_default_opts = {
+let mocha_opts = {};
+const mocha_default_opts = {
   timeout: 20000,
   reporter: 'mocha-jenkins-reporter',
   reporterOptions: {
@@ -136,9 +116,9 @@ var mocha_default_opts = {
   }
 };
 
-var eslint_opts = {};
+let eslint_opts = {};
 
-var eslint_default_opts = {
+let eslint_default_opts = {
   'env': {
     'node': true
   },
@@ -201,16 +181,16 @@ var eslint_default_opts = {
 
 // set the default opts to the .eslintrc contents if they exist, otherwise use ease defaults
 try {
-  var root_eslint_file = _path2.default.resolve(process.cwd(), '.eslintrc');
+  const root_eslint_file = _path2.default.resolve(process.cwd(), '.eslintrc');
   eslint_default_opts = JSON.parse(_fs2.default.readFileSync(root_eslint_file));
 } catch (err) {}
 
-var webpack_opts = {};
-var webpack_default_opts = {};
+let webpack_opts = {};
+let webpack_default_opts = {};
 
 // set the default opts to the webpack.config.js
 try {
-  var webpack_file = _path2.default.resolve(process.cwd(), 'webpack.config.js');
+  const webpack_file = _path2.default.resolve(process.cwd(), 'webpack.config.js');
   if (_fs2.default.existsSync(webpack_file)) {
     webpack_default_opts = require(webpack_file);
   }
@@ -218,68 +198,59 @@ try {
   console.error(err.stack);
 }
 
-var standard_transformer = function standard_transformer(content, filename) {
-  return content;
-};
+let standard_transformer = (content, filename) => content;
 
-var standard_transformer_filter = function standard_transformer_filter(filename) {
-  return filename.indexOf('node_modules') === -1;
-};
+let standard_transformer_filter = filename => filename.indexOf('node_modules') === -1;
 
-var standard_resolver = function standard_resolver(request, parent) {
-  _winston2.default.debug('Resolving ' + request + ' in ' + parent.id);
+let standard_resolver = (request, parent) => {
+  _winston2.default.debug(`Resolving ${request} in ${parent.id}`);
 
   if (ease_deps[request]) return { request: ease_deps[request] };
-  if (!parent.id.startsWith(process.cwd())) return { request: request, parent: parent };
+  if (!parent.id.startsWith(process.cwd())) return { request, parent };
 
-  var prefixes = matching_prefixes(parent.id);
+  const prefixes = matching_prefixes(parent.id);
   parent.paths = prefixes.concat(parent.paths);
   return {
-    parent: parent,
-    request: request
+    parent,
+    request
   };
 };
 
-var config = {};
+let config = {};
 
 // merge config from the .ease_config file
 try {
-  var config_file = _path2.default.resolve(process.cwd(), process.env.EASE_CONFIG || '.ease_config');
-  var _config = require(config_file);
-  _lodash2.default.defaultsDeep(eslint_opts, _config.eslint, eslint_default_opts);
-  _lodash2.default.defaultsDeep(mocha_opts, _config.mocha, mocha_default_opts);
-  _lodash2.default.defaultsDeep(webpack_opts, _config.webpack, webpack_default_opts);
+  const config_file = _path2.default.resolve(process.cwd(), process.env.EASE_CONFIG || '.ease_config');
+  const config = require(config_file);
+  _lodash2.default.defaultsDeep(eslint_opts, config.eslint, eslint_default_opts);
+  _lodash2.default.defaultsDeep(mocha_opts, config.mocha, mocha_default_opts);
+  _lodash2.default.defaultsDeep(webpack_opts, config.webpack, webpack_default_opts);
 
-  var _ref = _config.babel || {},
-      _ref$override = _ref.override,
-      override = _ref$override === undefined ? false : _ref$override,
-      targets = _ref.targets,
-      config_babel_opts = _objectWithoutProperties(_ref, ['override', 'targets']);
-
+  const _ref = config.babel || {},
+        { override = false, targets } = _ref,
+        config_babel_opts = _objectWithoutProperties(_ref, ['override', 'targets']);
   if (override) {
     exports.babel_opts = babel_opts = config_babel_opts;
   } else if (targets) {
     // if targets are provided, set up babel env preset
 
-    var plugins = config_babel_opts.plugins || [];
-    var presets = config_babel_opts.presets || [];
+    const plugins = config_babel_opts.plugins || [];
+    const presets = config_babel_opts.presets || [];
 
     exports.babel_opts = babel_opts = {
-      presets: [['env', { targets: targets, debug: true }]].concat(_toConsumableArray(presets.filter(function (name) {
-        return name !== 'env';
-      }))),
-      plugins: plugins
+      presets: [['env', { targets, debug: true }], ...presets.filter(name => name !== 'env')],
+      plugins
     };
   } else {
-    _lodash2.default.defaultsDeep(babel_opts, _config.babel, babel_default_opts);
+    _lodash2.default.defaultsDeep(babel_opts, config.babel, babel_default_opts);
   }
 
-  if (_config.transform_filter) {
-    exports.standard_transformer_filter = standard_transformer_filter = _config.transform_filter;
+  if (config.transform_filter) {
+    exports.standard_transformer_filter = standard_transformer_filter = config.transform_filter;
   }
 
-  if (_config.log_level) {
-    _winston2.default.level = _config.log_level;
+  if (config.log_level) {
+    _winston2.default.level = config.log_level;
   }
 } catch (err) {
   console.error(err.stack);

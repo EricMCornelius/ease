@@ -23,7 +23,7 @@ const filename = target ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-let {build_dir = directory, public_path, hook, reload_url, host, port, name = filename, vendor = [], replacements = [], type, ...rest} = webpack_opts;
+let {build_dir = directory, public_path, hook, reload_url, host, port, name = filename, replacements = [], type, ...rest} = webpack_opts;
 
 const analyzer = new BundleAnalyzerPlugin({
   analyzerMode: 'static',
@@ -37,15 +37,9 @@ const replacement_plugins = replacements.map(([key, value]) => new webpack.Norma
 const resolve = val => path.resolve(__dirname, '../node_modules', val);
 const polyfill_deps = type === 'lib' ? [] : ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
 
-vendor = [...polyfill_deps, ...vendor];
-if (vendor.length === 1) vendor = vendor[0];
-
-const entry = vendor.length > 0 ? {
-  [name]: source,
-  vendor
-} : {
+const entry = {
   [name]: source
-}
+};
 
 const output = type === 'lib' ? {
   path: path.resolve(build_dir),

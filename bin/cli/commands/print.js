@@ -3,11 +3,11 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var command = 'print';
+const command = 'print';
 
-var describe = 'Print a message';
+const describe = 'Print a message';
 
-var builder = {
+const builder = {
   vals: {
     description: 'values',
     type: 'number',
@@ -15,7 +15,7 @@ var builder = {
   }
 };
 
-var handler = function handler(argv) {
+const handler = argv => {
   console.log(argv);
 };
 

@@ -3,11 +3,11 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-var command = 'run';
+const command = 'run';
 
-var describe = 'Run a script';
+const describe = 'Run a script';
 
-var builder = {
+const builder = {
   include: {
     description: 'Include files matching this pattern',
     type: 'string',
@@ -15,7 +15,7 @@ var builder = {
   }
 };
 
-var handler = function handler(argv) {
+const handler = argv => {
   console.log(argv);
 };
 
