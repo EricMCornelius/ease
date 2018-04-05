@@ -20,7 +20,7 @@ const filename = output ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-let {build_dir, host = 'localhost', port = 8888, reload_url, public_path = directory, hook, name = filename, vendor = [], type, ...rest} = webpack_opts;
+let {build_dir, host = 'localhost', port = 8888, reload_url, public_path = directory, hook, name = filename, type, ...rest} = webpack_opts;
 
 if (port && !reload_url) {
   reload_url = `http://${host}:${port}`;
@@ -33,16 +33,12 @@ reload_deps[0] += `?${reload_url}`;
 
 const polyfill_deps = ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
 
-vendor = [...polyfill_deps, ...vendor];
-if (vendor.length === 1) vendor = vendor[0];
-
 let webpack_settings = _.defaultsDeep(rest, {
   entry: {
     [name]: [
       ...reload_deps,
       entry
-    ],
-    vendor
+    ]
   },
   output: {
     path: directory,

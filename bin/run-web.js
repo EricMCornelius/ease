@@ -48,8 +48,8 @@ const filename = output ? _path2.default.basename(pathname) : 'bundle';
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-let { build_dir, host = 'localhost', port = 8888, reload_url, public_path = directory, hook, name = filename, vendor = [], type } = _utils.webpack_opts,
-    rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'host', 'port', 'reload_url', 'public_path', 'hook', 'name', 'vendor', 'type']);
+let { build_dir, host = 'localhost', port = 8888, reload_url, public_path = directory, hook, name = filename, type } = _utils.webpack_opts,
+    rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'host', 'port', 'reload_url', 'public_path', 'hook', 'name', 'type']);
 
 if (port && !reload_url) {
   reload_url = `http://${host}:${port}`;
@@ -62,13 +62,9 @@ reload_deps[0] += `?${reload_url}`;
 
 const polyfill_deps = ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
 
-vendor = [...polyfill_deps, ...vendor];
-if (vendor.length === 1) vendor = vendor[0];
-
 let webpack_settings = _lodash2.default.defaultsDeep(rest, {
   entry: {
-    [name]: [...reload_deps, entry],
-    vendor
+    [name]: [...reload_deps, entry]
   },
   output: {
     path: directory,
