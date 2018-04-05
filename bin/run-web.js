@@ -70,7 +70,7 @@ let webpack_settings = _lodash2.default.defaultsDeep(rest, {
     modules: [_path2.default.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    modules: ['node_modules', 'bower_components']
+    modules: ['node_modules', 'bower_components', process.cwd()]
   },
   externals: [{
     'external': true,
@@ -143,14 +143,8 @@ if (hook) {
 }
 
 const { server } = webpack_settings,
-      remainder = _objectWithoutProperties(webpack_settings, ['server']);
+      webpack_config = _objectWithoutProperties(webpack_settings, ['server']);
 
-const webpack_config = (0, _webpack2.default)(remainder, (err, stats) => {
-  if (err) {
-    throw err;
-  }
-
-  console.log(stats.toString('normal'));
-});
+webpack_config.watch = true;
 
 (0, _webpackServe2.default)(Object.assign({ config: webpack_config }, server));

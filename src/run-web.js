@@ -41,7 +41,7 @@ let webpack_settings = _.defaultsDeep(rest, {
     modules: [path.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    modules: ['node_modules', 'bower_components']
+    modules: ['node_modules', 'bower_components', process.cwd()]
   },
   externals: [
     {
@@ -118,14 +118,8 @@ if (hook) {
   }
 }
 
-const {server, ...remainder} = webpack_settings;
+const {server, ...webpack_config} = webpack_settings;
 
-const webpack_config = webpack(remainder, (err, stats) => {
-  if (err) {
-    throw err;
-  }
-
-  console.log(stats.toString('normal'));
-});
+webpack_config.watch = true;
 
 serve({config: webpack_config, ...server});
