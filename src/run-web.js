@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 import setpath from './setpath';
-import _ from 'lodash';
+import {defaultsDeep} from 'lodash';
 
+import {parse} from 'url';
 import webpack from 'webpack';
 import serve from 'webpack-serve';
 import path from 'path';
@@ -20,21 +21,26 @@ const filename = output ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-let {build_dir, host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type, ...rest} = webpack_opts;
+let {build_dir, reload_url = 'ws://localhost:8081', host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type, ...rest} = webpack_opts;
+
+const public_websocket = url.parse(reload_url);
+
+const use_https = public_websocket.protocol === 'wss:';
 
 const resolve = val => path.resolve(__dirname, '../node_modules', val);
 
 // add hot loader plugin to babel
 babel_opts.plugins = (babel_opts.plugins || []).concat('react-hot-loader/babel');
 
-let webpack_settings = _.defaultsDeep(rest, {
+let webpack_settings = defaultsDeep(rest, {
   entry: {
     [name]: entry
   },
   output: {
     path: directory,
     filename: '[name].js',
-    publicPath: public_path
+    publicPath: public_path,
+    globalObject: 'this' // TODO: re-evaulate after https://github.com/webpack/webpack/issues/6642 ...
   },
   devtool: 'cheap-module-inline-source-map',
   resolveLoader: {
@@ -97,12 +103,20 @@ let webpack_settings = _.defaultsDeep(rest, {
       loaders: ['raw-loader']
     }]
   },
-  server: {
-    publicPath: public_path,
-    hot: true,
-    historyApiFallback: true,
+  watch: true,
+  serve: {
     host,
-    port
+    port,
+    dev: {
+      publicPath: public_path
+    },
+    hot: {
+      https: use_https,
+      host: {
+        server: host,
+        client: public_websocket.hostname
+      }
+    }
   }
 });
 
@@ -113,8 +127,6 @@ if (hook) {
   }
 }
 
-const {server, ...webpack_config} = webpack_settings;
+const config = webpack_settings;
 
-webpack_config.watch = true;
-
-serve({config: webpack_config, ...server});
+serve({config});

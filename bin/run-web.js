@@ -7,7 +7,7 @@ var _setpath2 = _interopRequireDefault(_setpath);
 
 var _lodash = require('lodash');
 
-var _lodash2 = _interopRequireDefault(_lodash);
+var _url = require('url');
 
 var _webpack = require('webpack');
 
@@ -48,22 +48,27 @@ const filename = output ? _path2.default.basename(pathname) : 'bundle';
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-let { build_dir, host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type } = _utils.webpack_opts,
-    rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'host', 'port', 'public_path', 'hook', 'name', 'type']);
+let { build_dir, reload_url = 'ws://localhost:8081', host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type } = _utils.webpack_opts,
+    rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'reload_url', 'host', 'port', 'public_path', 'hook', 'name', 'type']);
+
+const public_websocket = url.parse(reload_url);
+
+const use_https = public_websocket.protocol === 'wss:';
 
 const resolve = val => _path2.default.resolve(__dirname, '../node_modules', val);
 
 // add hot loader plugin to babel
 _utils.babel_opts.plugins = (_utils.babel_opts.plugins || []).concat('react-hot-loader/babel');
 
-let webpack_settings = _lodash2.default.defaultsDeep(rest, {
+let webpack_settings = (0, _lodash.defaultsDeep)(rest, {
   entry: {
     [name]: entry
   },
   output: {
     path: directory,
     filename: '[name].js',
-    publicPath: public_path
+    publicPath: public_path,
+    globalObject: 'this' // TODO: re-evaulate after https://github.com/webpack/webpack/issues/6642 ...
   },
   devtool: 'cheap-module-inline-source-map',
   resolveLoader: {
@@ -122,12 +127,20 @@ let webpack_settings = _lodash2.default.defaultsDeep(rest, {
       loaders: ['raw-loader']
     }]
   },
-  server: {
-    publicPath: public_path,
-    hot: true,
-    historyApiFallback: true,
+  watch: true,
+  serve: {
     host,
-    port
+    port,
+    dev: {
+      publicPath: public_path
+    },
+    hot: {
+      https: use_https,
+      host: {
+        server: host,
+        client: public_websocket.hostname
+      }
+    }
   }
 });
 
@@ -138,9 +151,6 @@ if (hook) {
   }
 }
 
-const { server } = webpack_settings,
-      webpack_config = _objectWithoutProperties(webpack_settings, ['server']);
+const config = webpack_settings;
 
-webpack_config.watch = true;
-
-(0, _webpackServe2.default)(Object.assign({ config: webpack_config }, server));
+(0, _webpackServe2.default)({ config });
