@@ -21,9 +21,10 @@ const filename = output ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-let {build_dir, reload_url = 'ws://localhost:8081', host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type, ...rest} = webpack_opts;
+let {build_dir, reload_url = 'ws://localhost:8081', backend_url = 'ws://localhost:8081', host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type, ...rest} = webpack_opts;
 
 const public_websocket = parse(reload_url);
+const private_websocket = parse(backend_url);
 
 const use_https = public_websocket.protocol === 'wss:';
 
@@ -113,11 +114,11 @@ let webpack_settings = defaultsDeep(rest, {
     hot: {
       https: use_https,
       host: {
-        server: host,
+        server: private_websocket.hostname,
         client: public_websocket.hostname
       },
       port: {
-        server: port,
+        server: private_websocket.port,
         client: public_websocket.port
       }
     }
