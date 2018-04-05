@@ -115,6 +115,10 @@ let webpack_settings = defaultsDeep(rest, {
       host: {
         server: host,
         client: public_websocket.hostname
+      },
+      port: {
+        server: port,
+        client: public_websocket.port
       }
     }
   }

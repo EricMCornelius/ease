@@ -139,6 +139,10 @@ let webpack_settings = (0, _lodash.defaultsDeep)(rest, {
       host: {
         server: host,
         client: public_websocket.hostname
+      },
+      port: {
+        server: port,
+        client: public_websocket.port
       }
     }
   }
