@@ -53,7 +53,8 @@ let { build_dir, host = 'localhost', port = 8888, public_path = directory, hook,
 
 const resolve = val => _path2.default.resolve(__dirname, '../node_modules', val);
 
-const polyfill_deps = ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
+// add hot loader plugin to babel
+_utils.babel_opts.plugins = (_utils.babel_opts.plugins || []).concat('react-hot-loader/babel');
 
 let webpack_settings = _lodash2.default.defaultsDeep(rest, {
   entry: {
@@ -85,11 +86,6 @@ let webpack_settings = _lodash2.default.defaultsDeep(rest, {
       enforce: 'pre',
       test: /\.jsx?$/,
       loader: 'shebang-loader'
-    }, {
-      enforce: 'pre',
-      test: /\.jsx?$/,
-      include: _utils.standard_transformer_filter,
-      loader: 'react-hot-loader/webpack'
     }, {
       enforce: 'post',
       test: /\.jsx?$/,
