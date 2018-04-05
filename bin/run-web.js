@@ -78,7 +78,7 @@ let webpack_settings = _lodash2.default.defaultsDeep(rest, {
   }],
   plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.DefinePlugin({
     'process.env.NODE_ENV': '"dev"'
-  }), new _webpack2.default.HotModuleReplacementPlugin()
+  })
   // new DashboardPlugin()
   ],
   module: {

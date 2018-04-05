@@ -53,8 +53,7 @@ let webpack_settings = _.defaultsDeep(rest, {
     new webpack.ProgressPlugin(formatter),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"dev"'
-    }),
-    new webpack.HotModuleReplacementPlugin()
+    })
     // new DashboardPlugin()
   ],
   module: {
