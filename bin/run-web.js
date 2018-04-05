@@ -51,7 +51,7 @@ const filename = output ? _path2.default.basename(pathname) : 'bundle';
 let { build_dir, reload_url = 'ws://localhost:8081', host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type } = _utils.webpack_opts,
     rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'reload_url', 'host', 'port', 'public_path', 'hook', 'name', 'type']);
 
-const public_websocket = url.parse(reload_url);
+const public_websocket = (0, _url.parse)(reload_url);
 
 const use_https = public_websocket.protocol === 'wss:';
 

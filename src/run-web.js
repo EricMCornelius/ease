@@ -23,7 +23,7 @@ patcher(standard_transformer, standard_resolver);
 
 let {build_dir, reload_url = 'ws://localhost:8081', host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type, ...rest} = webpack_opts;
 
-const public_websocket = url.parse(reload_url);
+const public_websocket = parse(reload_url);
 
 const use_https = public_websocket.protocol === 'wss:';
 
