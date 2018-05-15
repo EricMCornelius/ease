@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 import setpath from './setpath';
-import _ from 'lodash';
+import {defaultsDeep} from 'lodash';
 
+import {parse} from 'url';
 import webpack from 'webpack';
-import webpack_dev_server from 'webpack-dev-server';
+import serve from 'webpack-serve';
 import path from 'path';
 import patcher from './module_patch';
 import {formatter, webpack_opts, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
@@ -20,41 +21,34 @@ const filename = output ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-let {build_dir, host = 'localhost', port = 8888, reload_url, public_path = directory, hook, name = filename, vendor = [], type, ...rest} = webpack_opts;
+let {build_dir, reload_url = 'ws://localhost:8081', backend_url = 'ws://localhost:8081', host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type, ...rest} = webpack_opts;
 
-if (port && !reload_url) {
-  reload_url = `http://${host}:${port}`;
-}
+const public_websocket = parse(reload_url);
+const private_websocket = parse(backend_url);
+
+const use_https = public_websocket.protocol === 'wss:';
 
 const resolve = val => path.resolve(__dirname, '../node_modules', val);
 
-const reload_deps = [`webpack-dev-server/client`, 'webpack/hot/only-dev-server'].map(resolve);
-reload_deps[0] += `?${reload_url}`;
+// add hot loader plugin to babel
+babel_opts.plugins = (babel_opts.plugins || []).concat('react-hot-loader/babel');
 
-const polyfill_deps = ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
-
-vendor = [...polyfill_deps, ...vendor];
-if (vendor.length === 1) vendor = vendor[0];
-
-let webpack_settings = _.defaultsDeep(rest, {
+let webpack_settings = defaultsDeep(rest, {
   entry: {
-    [name]: [
-      ...reload_deps,
-      entry
-    ],
-    vendor
+    [name]: entry
   },
   output: {
     path: directory,
     filename: '[name].js',
-    publicPath: public_path
+    publicPath: public_path,
+    globalObject: 'this' // TODO: re-evaulate after https://github.com/webpack/webpack/issues/6642 ...
   },
   devtool: 'cheap-module-inline-source-map',
   resolveLoader: {
     modules: [path.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    modules: ['node_modules', 'bower_components']
+    modules: ['node_modules', 'bower_components', process.cwd()]
   },
   externals: [
     {
@@ -66,8 +60,7 @@ let webpack_settings = _.defaultsDeep(rest, {
     new webpack.ProgressPlugin(formatter),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"dev"'
-    }),
-    new webpack.HotModuleReplacementPlugin()
+    })
     // new DashboardPlugin()
   ],
   module: {
@@ -75,11 +68,6 @@ let webpack_settings = _.defaultsDeep(rest, {
       enforce: 'pre',
       test: /\.jsx?$/,
       loader: 'shebang-loader'
-    }, {
-      enforce: 'pre',
-      test: /\.jsx?$/,
-      include: standard_transformer_filter,
-      loader: 'react-hot-loader/webpack'
     }, {
       enforce: 'post',
       test: /\.jsx?$/,
@@ -108,10 +96,6 @@ let webpack_settings = _.defaultsDeep(rest, {
       use: ['style-loader', 'css-loader', 'sass-loader']
     }, {
       enforce: 'post',
-      test: /\.json$/,
-      loaders: ['json-loader']
-    }, {
-      enforce: 'post',
       test: /\.yaml$/,
       loaders: ['json-loader', 'yaml-loader']
     }, {
@@ -120,12 +104,24 @@ let webpack_settings = _.defaultsDeep(rest, {
       loaders: ['raw-loader']
     }]
   },
-  server: {
-    publicPath: public_path,
-    hot: true,
-    historyApiFallback: true,
+  watch: true,
+  serve: {
     host,
-    port
+    port,
+    dev: {
+      publicPath: public_path
+    },
+    hot: {
+      https: use_https,
+      host: {
+        server: private_websocket.hostname,
+        client: public_websocket.hostname
+      },
+      port: {
+        server: private_websocket.port,
+        client: public_websocket.port
+      }
+    }
   }
 });
 
@@ -136,22 +132,6 @@ if (hook) {
   }
 }
 
-const {server, ...remainder} = webpack_settings;
+const config = webpack_settings;
 
-const webpack_config = webpack(remainder, (err, stats) => {
-  if (err) {
-    throw err;
-  }
-
-  console.log(stats.toString('normal'));
-});
-
-const {host: server_host, port: server_port, ...server_config} = server;
-
-new webpack_dev_server(webpack_config, server_config).listen(server_port, server_host, (err, result) => {
-  if (err) {
-    return console.error(err);
-  }
-
-  console.log(`Listening at ${host}:${port}`);
-});
+serve({config});
