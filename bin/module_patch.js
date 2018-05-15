@@ -14,15 +14,12 @@ var _path2 = _interopRequireDefault(_path);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var _compile = _module3.default.prototype._compile;
-var _resolve = _module3.default._resolveFilename;
+const _compile = _module3.default.prototype._compile;
+const _resolve = _module3.default._resolveFilename;
 
-exports.default = function (transformer, resolver) {
+exports.default = (transformer, resolver) => {
   _module3.default._resolveFilename = function (request_, parent_) {
-    var _resolver = resolver(request_, parent_),
-        request = _resolver.request,
-        parent = _resolver.parent;
-
+    const { request, parent } = resolver(request_, parent_);
     try {
       return _resolve(request || request_, parent || parent_);
     } catch (err) {}
@@ -32,7 +29,7 @@ exports.default = function (transformer, resolver) {
     try {
       return _resolve(_path2.default.resolve(request || request_, 'index.js'), parent || parent_);
     } catch (err) {}
-    throw new Error('Unable to resolve / could not find import: ' + (request || request_));
+    throw new Error(`Unable to resolve / could not find import: ${request || request_}`);
   };
 
   _module3.default.prototype._compile = function (content, filename) {

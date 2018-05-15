@@ -64,9 +64,6 @@ let webpack_settings = _.defaultsDeep(rest, {
   ],
   plugins: [
     new webpack.ProgressPlugin(formatter),
-    new webpack.optimize.CommonsChunkPlugin({
-      names: ['vendor', 'manifest']
-    }),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"dev"'
     }),

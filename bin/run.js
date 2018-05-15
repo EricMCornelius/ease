@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
-
 var _setpath = require('./setpath');
 
 var _setpath2 = _interopRequireDefault(_setpath);
@@ -41,17 +39,17 @@ var _sourceMapSupport2 = _interopRequireDefault(_sourceMapSupport);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var sourcemap_cache = {};
+const sourcemap_cache = {};
 
 _sourceMapSupport2.default.install({
   environment: 'node',
-  retrieveSourceMap: function retrieveSourceMap(source) {
-    _utils.log.debug('Checking sourcemap for source: ' + source);
-    var sourcemap = sourcemap_cache[source];
+  retrieveSourceMap(source) {
+    _utils.log.debug(`Checking sourcemap for source: ${source}`);
+    let sourcemap = sourcemap_cache[source];
     if (!sourcemap) {
       return null;
     }
-    _utils.log.debug('Retrieving sourcemap ' + sourcemap);
+    _utils.log.debug(`Retrieving sourcemap ${sourcemap}`);
 
     return {
       url: source,
@@ -60,61 +58,59 @@ _sourceMapSupport2.default.install({
   }
 });
 
-var entry = _path2.default.resolve(process.argv[2]);
+let entry = _path2.default.resolve(process.argv[2]);
 
-var transformer = function transformer(content, filename) {
-  _utils.log.debug('Processing file: ' + filename);
+let transformer = (content, filename) => {
+  _utils.log.debug(`Processing file: ${filename}`);
   if (!(0, _utils.standard_transformer_filter)(filename)) {
-    _utils.log.debug('Ignoring filtered file: ' + filename);
+    _utils.log.debug(`Ignoring filtered file: ${filename}`);
     return content;
   }
 
   if (filename.endsWith('.css') || filename.endsWith('.scss')) {
-    _utils.log.debug('Skipping style file: ' + filename);
+    _utils.log.debug(`Skipping style file: ${filename}`);
     return '';
   }
 
   if (filename.endsWith('.json')) {
-    _utils.log.debug('Loading json file: ' + filename);
+    _utils.log.debug(`Loading json file: ${filename}`);
     return content;
   }
 
-  _utils.log.debug('Transforming file: ' + filename);
+  _utils.log.debug(`Transforming file: ${filename}`);
 
-  var key = _utils.cache.hash(content);
+  let key = _utils.cache.hash(content);
   try {
     sourcemap_cache[filename] = key + '.map';
-    var cached = _utils.cache.get(key + '.code');
-    _utils.log.debug('Retrieving cached transformed file: ' + (key + '.code'));
+    let cached = _utils.cache.get(key + '.code');
+    _utils.log.debug(`Retrieving cached transformed file: ${key + '.code'}`);
     return cached;
   } catch (err) {}
 
   // yaml transformation
   if (filename.endsWith('.yaml')) {
-    _utils.log.debug('Transforming yaml file: ' + filename);
-    var transformed = 'module.exports = ' + JSON.stringify(_jsYaml2.default.load(content));
+    _utils.log.debug(`Transforming yaml file: ${filename}`);
+    const transformed = `module.exports = ${JSON.stringify(_jsYaml2.default.load(content))}`;
     _utils.cache.put(key + '.code', transformed);
     return transformed;
   }
 
   // raw import
-  var extensions = ['txt', 'key', 'crt', 'pem', 'ps1', 'sh'];
-  if (extensions.some(function (ext) {
-    return filename.endsWith('.' + ext);
-  })) {
-    _utils.log.debug('Transforming raw file: ' + filename);
-    var _transformed = 'module.exports = ' + JSON.stringify(content.toString());
-    _utils.cache.put(key + '.code', _transformed);
-    return _transformed;
+  const extensions = ['txt', 'key', 'crt', 'pem', 'ps1', 'sh'];
+  if (extensions.some(ext => filename.endsWith(`.${ext}`))) {
+    _utils.log.debug(`Transforming raw file: ${filename}`);
+    const transformed = `module.exports = ${JSON.stringify(content.toString())}`;
+    _utils.cache.put(key + '.code', transformed);
+    return transformed;
   }
 
   _utils.babel_opts.filename = filename;
 
-  var transpiled = (0, _babelCore.transform)(content, _extends({}, _utils.babel_opts, { sourceMaps: true }));
+  let transpiled = (0, _babelCore.transform)(content, Object.assign({}, _utils.babel_opts, { sourceMaps: true }));
   _utils.cache.put(key + '.map', transpiled.map);
-  var source_map = _path2.default.resolve(process.cwd(), '.ease_cache', key + '.map');
+  let source_map = _path2.default.resolve(process.cwd(), '.ease_cache', key + '.map');
 
-  var transpiled_code = transpiled.code + '\n//# sourceMappingURL=' + source_map;
+  let transpiled_code = `${transpiled.code}\n//# sourceMappingURL=${source_map}`;
   _utils.cache.put(key + '.code', transpiled_code);
   return transpiled_code;
 };

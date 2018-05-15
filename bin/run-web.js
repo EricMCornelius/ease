@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 'use strict';
 
-var _entry;
-
 var _setpath = require('./setpath');
 
 var _setpath2 = _interopRequireDefault(_setpath);
@@ -39,55 +37,39 @@ var _autoprefixer2 = _interopRequireDefault(_autoprefixer);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
 
-var entry = _path2.default.resolve(process.argv[2]);
-var output = process.argv[3];
+const entry = _path2.default.resolve(process.argv[2]);
+const output = process.argv[3];
 
-var pathname = _path2.default.resolve(output || 'dist/bundle.js');
-var directory = output ? _path2.default.dirname(pathname) : '/dist';
-var filename = output ? _path2.default.basename(pathname) : 'bundle';
+const pathname = _path2.default.resolve(output || 'dist/bundle.js');
+const directory = output ? _path2.default.dirname(pathname) : '/dist';
+const filename = output ? _path2.default.basename(pathname) : 'bundle';
 
 (0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
 
-var build_dir = _utils.webpack_opts.build_dir,
-    _webpack_opts$host = _utils.webpack_opts.host,
-    host = _webpack_opts$host === undefined ? 'localhost' : _webpack_opts$host,
-    _webpack_opts$port = _utils.webpack_opts.port,
-    port = _webpack_opts$port === undefined ? 8888 : _webpack_opts$port,
-    reload_url = _utils.webpack_opts.reload_url,
-    _webpack_opts$public_ = _utils.webpack_opts.public_path,
-    public_path = _webpack_opts$public_ === undefined ? directory : _webpack_opts$public_,
-    hook = _utils.webpack_opts.hook,
-    _webpack_opts$name = _utils.webpack_opts.name,
-    name = _webpack_opts$name === undefined ? filename : _webpack_opts$name,
-    _webpack_opts$vendor = _utils.webpack_opts.vendor,
-    vendor = _webpack_opts$vendor === undefined ? [] : _webpack_opts$vendor,
-    type = _utils.webpack_opts.type,
+let { build_dir, host = 'localhost', port = 8888, reload_url, public_path = directory, hook, name = filename, vendor = [], type } = _utils.webpack_opts,
     rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'host', 'port', 'reload_url', 'public_path', 'hook', 'name', 'vendor', 'type']);
 
 if (port && !reload_url) {
-  reload_url = 'http://' + host + ':' + port;
+  reload_url = `http://${host}:${port}`;
 }
 
-var resolve = function resolve(val) {
-  return _path2.default.resolve(__dirname, '../node_modules', val);
-};
+const resolve = val => _path2.default.resolve(__dirname, '../node_modules', val);
 
-var reload_deps = ['webpack-dev-server/client', 'webpack/hot/only-dev-server'].map(resolve);
-reload_deps[0] += '?' + reload_url;
+const reload_deps = [`webpack-dev-server/client`, 'webpack/hot/only-dev-server'].map(resolve);
+reload_deps[0] += `?${reload_url}`;
 
-var polyfill_deps = ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
+const polyfill_deps = ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
 
-vendor = [].concat(_toConsumableArray(polyfill_deps), _toConsumableArray(vendor));
+vendor = [...polyfill_deps, ...vendor];
 if (vendor.length === 1) vendor = vendor[0];
 
-var webpack_settings = _lodash2.default.defaultsDeep(rest, {
-  entry: (_entry = {}, _defineProperty(_entry, name, [].concat(_toConsumableArray(reload_deps), [entry])), _defineProperty(_entry, 'vendor', vendor), _entry),
+let webpack_settings = _lodash2.default.defaultsDeep(rest, {
+  entry: {
+    [name]: [...reload_deps, entry],
+    vendor
+  },
   output: {
     path: directory,
     filename: '[name].js',
@@ -104,9 +86,7 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
     'external': true,
     'regenerator': true
   }],
-  plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.optimize.CommonsChunkPlugin({
-    names: ['vendor', 'manifest']
-  }), new _webpack2.default.DefinePlugin({
+  plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.DefinePlugin({
     'process.env.NODE_ENV': '"dev"'
   }), new _webpack2.default.HotModuleReplacementPlugin()
   // new DashboardPlugin()
@@ -165,23 +145,22 @@ var webpack_settings = _lodash2.default.defaultsDeep(rest, {
     publicPath: public_path,
     hot: true,
     historyApiFallback: true,
-    host: host,
-    port: port
+    host,
+    port
   }
 });
 
 if (hook) {
-  var res = hook(webpack_settings, 'run-web');
+  const res = hook(webpack_settings, 'run-web');
   if (res) {
     webpack_settings = res;
   }
 }
 
-var _webpack_settings = webpack_settings,
-    server = _webpack_settings.server,
-    remainder = _objectWithoutProperties(_webpack_settings, ['server']);
+const { server } = webpack_settings,
+      remainder = _objectWithoutProperties(webpack_settings, ['server']);
 
-var webpack_config = (0, _webpack2.default)(remainder, function (err, stats) {
+const webpack_config = (0, _webpack2.default)(remainder, (err, stats) => {
   if (err) {
     throw err;
   }
@@ -189,14 +168,13 @@ var webpack_config = (0, _webpack2.default)(remainder, function (err, stats) {
   console.log(stats.toString('normal'));
 });
 
-var server_host = server.host,
-    server_port = server.port,
-    server_config = _objectWithoutProperties(server, ['host', 'port']);
+const { host: server_host, port: server_port } = server,
+      server_config = _objectWithoutProperties(server, ['host', 'port']);
 
-new _webpackDevServer2.default(webpack_config, server_config).listen(server_port, server_host, function (err, result) {
+new _webpackDevServer2.default(webpack_config, server_config).listen(server_port, server_host, (err, result) => {
   if (err) {
     return console.error(err);
   }
 
-  console.log('Listening at ' + host + ':' + port);
+  console.log(`Listening at ${host}:${port}`);
 });

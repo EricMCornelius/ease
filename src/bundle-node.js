@@ -42,7 +42,7 @@ let webpack_settings = _.defaultsDeep(rest, {
     modules: [path.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    modules: ['node_modules', '.']
+    modules: ['node_modules', process.cwd()]
   },
   externals: [
     {
@@ -80,11 +80,7 @@ let webpack_settings = _.defaultsDeep(rest, {
       loaders: ['style-loader', 'css-loader', 'sass-loader']
     }, {
       enforce: 'post',
-      test: /\.json$/,
-      loaders: ['json-loader']
-    }, {
-      enforce: 'post',
-      test: /\.yaml$/,
+      test: /\.ya?ml$/,
       loaders: ['json-loader', 'yaml-loader']
     }, {
       enforce: 'post',

@@ -23,7 +23,7 @@ const filename = target ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-let {build_dir = directory, public_path, hook, reload_url, host, port, name = filename, vendor = [], replacements = [], type, ...rest} = webpack_opts;
+let {build_dir = directory, public_path, hook, reload_url, host, port, name = filename, replacements = [], type, ...rest} = webpack_opts;
 
 const analyzer = new BundleAnalyzerPlugin({
   analyzerMode: 'static',
@@ -37,15 +37,9 @@ const replacement_plugins = replacements.map(([key, value]) => new webpack.Norma
 const resolve = val => path.resolve(__dirname, '../node_modules', val);
 const polyfill_deps = type === 'lib' ? [] : ['babel-polyfill/dist/polyfill.min.js'].map(resolve);
 
-vendor = [...polyfill_deps, ...vendor];
-if (vendor.length === 1) vendor = vendor[0];
-
-const entry = vendor.length > 0 ? {
-  [name]: source,
-  vendor
-} : {
+const entry = {
   [name]: source
-}
+};
 
 const output = type === 'lib' ? {
   path: path.resolve(build_dir),
@@ -65,7 +59,7 @@ let webpack_settings = _.defaultsDeep(rest, {
     modules: [path.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    modules: ['node_modules', 'bower_components']
+    modules: ['node_modules', 'bower_components', process.cwd()]
   },
   externals: [
     {
@@ -76,20 +70,12 @@ let webpack_settings = _.defaultsDeep(rest, {
   target: 'web',
   plugins: [
     new webpack.ProgressPlugin(formatter),
-    ...(type === 'lib' ? [] : [new webpack.optimize.CommonsChunkPlugin({ names: ['vendor', 'manifest'] })]),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"production"'
     }),
     new webpack.LoaderOptionsPlugin({
       minimize: true,
       debug: false
-    }),
-    new webpack.optimize.UglifyJsPlugin({
-      beautify: false,
-      sourceMap: true,
-      mangle: true,
-      compress: true,
-      comments: false
     }),
     ...replacement_plugins,
     new webpack.optimize.ModuleConcatenationPlugin(),
@@ -126,13 +112,10 @@ let webpack_settings = _.defaultsDeep(rest, {
       enforce: 'post',
       test: /\.s?css$/,
       use: ['style-loader', 'css-loader', 'sass-loader']
-    }, {
+    },
+    {
       enforce: 'post',
-      test: /\.json$/,
-      loaders: ['json-loader']
-    }, {
-      enforce: 'post',
-      test: /\.yaml$/,
+      test: /\.ya?ml$/,
       loaders: ['json-loader', 'yaml-loader']
     }, {
       enforce: 'post',
