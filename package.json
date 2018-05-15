@@ -61,6 +61,7 @@
     "webpack": "^4.8.3",
     "webpack-bundle-analyzer": "^2.12.0",
     "webpack-dev-server": "^3.1.4",
+    "webpack-serve": "github:ericmcornelius/webpack-serve",
     "webpack-visualizer-plugin": "^0.1.11",
     "winston": "^2.4.2",
     "worker-loader": "^1.1.1",
