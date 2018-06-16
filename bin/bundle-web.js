@@ -157,5 +157,5 @@ const { server } = webpack_settings,
     throw err;
   }
 
-  console.log(stats.toString('normal'));
+  log.info(stats.toString('normal'));
 });

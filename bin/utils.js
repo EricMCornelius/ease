@@ -17,9 +17,9 @@ var _lodash = require('lodash');
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
-var _winston = require('winston');
+var _logger = require('logger');
 
-var _winston2 = _interopRequireDefault(_winston);
+var _logger2 = _interopRequireDefault(_logger);
 
 var _shelljs = require('shelljs');
 
@@ -30,6 +30,10 @@ var _cache2 = _interopRequireDefault(_cache);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+
+const log = new _logger2.default({ level: 'info' });
+
+global.log = log;
 
 const cache_dir = _path2.default.resolve('.ease_cache');
 
@@ -94,7 +98,7 @@ const formatter = (percentage, message) => {
     process.stdout.cursorTo(0);
     process.stdout.write(formatted);
   } else {
-    console.log(formatted);
+    log.info(formatted);
   }
 };
 
@@ -195,7 +199,7 @@ try {
     webpack_default_opts = require(webpack_file);
   }
 } catch (err) {
-  console.error(err.stack);
+  log.error(err.stack);
 }
 
 let standard_transformer = (content, filename) => content;
@@ -203,7 +207,7 @@ let standard_transformer = (content, filename) => content;
 let standard_transformer_filter = filename => filename.indexOf('node_modules') === -1;
 
 let standard_resolver = (request, parent) => {
-  _winston2.default.debug(`Resolving ${request} in ${parent.id}`);
+  log.debug(`Resolving ${request} in ${parent.id}`);
 
   if (ease_deps[request]) return { request: ease_deps[request] };
   if (!parent.id.startsWith(process.cwd())) return { request, parent };
@@ -250,10 +254,10 @@ try {
   }
 
   if (config.log_level) {
-    _winston2.default.level = config.log_level;
+    log.level = config.log_level;
   }
 } catch (err) {
-  console.error(err.stack);
+  log.error(err.stack);
   exports.eslint_opts = eslint_opts = eslint_default_opts;
   exports.babel_opts = babel_opts = babel_default_opts;
 }
@@ -267,4 +271,4 @@ exports.standard_transformer = standard_transformer;
 exports.standard_transformer_filter = standard_transformer_filter;
 exports.standard_resolver = standard_resolver;
 exports.cache = cache;
-exports.log = _winston2.default;
+exports.log = log;

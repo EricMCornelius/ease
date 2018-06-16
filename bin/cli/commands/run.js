@@ -16,7 +16,7 @@ const builder = {
 };
 
 const handler = argv => {
-  console.log(argv);
+  log.info(argv);
 };
 
 exports.command = command;

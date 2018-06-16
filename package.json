@@ -1,6 +1,6 @@
 {
   "name": "ease",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "Simple babel transpilation, istanbul code coverage, mocha unit testing, and webpack building",
   "main": "index.js",
   "scripts": {},
@@ -62,7 +62,6 @@
     "webpack-bundle-analyzer": "^2.13.1",
     "webpack-serve": "github:ericmcornelius/webpack-serve",
     "webpack-visualizer-plugin": "^0.1.11",
-    "winston": "^3.0.0",
     "worker-loader": "^2.0.0",
     "yaml-loader": "^0.5.0",
     "yargs": "^11.0.0"

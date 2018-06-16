@@ -1,10 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
-import log from 'winston';
+import Logger from 'logger';
 
 import {find} from 'shelljs';
 import Cache from './cache';
+
+const log = new Logger({level: 'info'});
+
+global.log = log;
 
 const cache_dir = path.resolve('.ease_cache');
 
@@ -53,7 +57,7 @@ try {
 catch (err) {
   project_dep_trie = get_packages(process.cwd())
     .map(dep => dep.split('/'))
-    .reduce((agg, parts) => _.set(agg, parts, {}), {}); 
+    .reduce((agg, parts) => _.set(agg, parts, {}), {});
   cache.put(project_deps_key, project_dep_trie);
 }
 
@@ -81,7 +85,7 @@ const formatter = (percentage, message) => {
     process.stdout.write(formatted);
   }
   else {
-    console.log(formatted);
+    log.info(formatted);
   }
 };
 
@@ -186,7 +190,7 @@ try {
   }
 }
 catch(err) {
-  console.error(err.stack);
+  log.error(err.stack);
 }
 
 let standard_transformer = (content, filename) => content;
@@ -245,7 +249,7 @@ try {
   }
 }
 catch(err) {
-  console.error(err.stack);
+  log.error(err.stack);
   eslint_opts = eslint_default_opts;
   babel_opts = babel_default_opts;
 }

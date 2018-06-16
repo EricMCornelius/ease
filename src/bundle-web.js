@@ -140,5 +140,5 @@ webpack(remainder, (err, stats) => {
     throw err;
   }
 
-  console.log(stats.toString('normal'));
+  log.info(stats.toString('normal'));
 });
