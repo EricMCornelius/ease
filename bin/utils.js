@@ -237,6 +237,8 @@ try {
     exports.babel_opts = babel_opts = config_babel_opts;
   } else if (targets) {
     // if targets are provided, set up babel env preset
+    _lodash2.default.defaultsDeep(config_babel_opts, babel_default_opts);
+
     const { plugins = [], presets = [] } = config_babel_opts,
           rest = _objectWithoutProperties(config_babel_opts, ['plugins', 'presets']);
 

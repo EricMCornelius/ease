@@ -227,6 +227,8 @@ try {
   }
   else if (targets) {
     // if targets are provided, set up babel env preset
+    _.defaultsDeep(config_babel_opts, babel_default_opts);
+
     const {plugins = [], presets = [], ...rest} = config_babel_opts;
 
     babel_opts = {
