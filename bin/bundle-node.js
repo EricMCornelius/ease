@@ -62,7 +62,7 @@ let webpack_settings = _lodash2.default.defaultsDeep(rest, {
     modules: [_path2.default.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    modules: ['node_modules', process.cwd()]
+    modules: ['node_modules', process.cwd(), '.']
   },
   externals: [{
     'external': true

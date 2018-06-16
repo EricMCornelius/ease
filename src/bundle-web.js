@@ -59,7 +59,7 @@ let webpack_settings = _.defaultsDeep(rest, {
     modules: [path.resolve(__dirname, '../node_modules')]
   },
   resolve: {
-    modules: ['node_modules', 'bower_components', process.cwd()]
+    modules: ['node_modules', 'bower_components', process.cwd(), '.']
   },
   externals: [
     {
