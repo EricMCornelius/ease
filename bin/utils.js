@@ -237,14 +237,13 @@ try {
     exports.babel_opts = babel_opts = config_babel_opts;
   } else if (targets) {
     // if targets are provided, set up babel env preset
+    const { plugins = [], presets = [] } = config_babel_opts,
+          rest = _objectWithoutProperties(config_babel_opts, ['plugins', 'presets']);
 
-    const plugins = config_babel_opts.plugins || [];
-    const presets = config_babel_opts.presets || [];
-
-    exports.babel_opts = babel_opts = {
+    exports.babel_opts = babel_opts = Object.assign({
       presets: [['env', { targets, debug: true }], ...presets.filter(name => name !== 'env')],
       plugins
-    };
+    }, rest);
   } else {
     _lodash2.default.defaultsDeep(babel_opts, config.babel, babel_default_opts);
   }

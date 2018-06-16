@@ -227,13 +227,12 @@ try {
   }
   else if (targets) {
     // if targets are provided, set up babel env preset
-
-    const plugins = config_babel_opts.plugins || [];
-    const presets = config_babel_opts.presets || [];
+    const {plugins = [], presets = [], ...rest} = config_babel_opts;
 
     babel_opts = {
       presets: [['env', {targets, debug: true}], ...presets.filter(name => name !== 'env')],
-      plugins
+      plugins,
+      ...rest
     };
   }
   else {
