@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import _ from 'lodash';
-import Logger from 'logger';
+import Logger from './logger';
 
 import {find} from 'shelljs';
 import Cache from './cache';
