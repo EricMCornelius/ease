@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", {
 const levels = ['trace', 'debug', 'info', 'warn', 'error'];
 
 class Logger {
-  constructor({ level = process.env.LOG_LEVEL || 'info' }) {
+  constructor({ level }) {
     let threshold = levels.indexOf(level);
     if (threshold === -1) {
       console.warn(`Invalid log level: ${level} - defaulting to info`);

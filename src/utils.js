@@ -6,7 +6,7 @@ import Logger from './logger';
 import {find} from 'shelljs';
 import Cache from './cache';
 
-const log = new Logger({level: 'info'});
+const log = new Logger({level: process.env.LOG_LEVEL || 'info'});
 
 global.log = log;
 
