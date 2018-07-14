@@ -108,7 +108,7 @@ let webpack_settings = defaultsDeep(rest, {
   serve: {
     host,
     port,
-    dev: {
+    devMiddleware: {
       publicPath: public_path
     },
     hotClient: {
