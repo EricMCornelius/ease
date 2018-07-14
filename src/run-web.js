@@ -118,8 +118,8 @@ let webpack_settings = defaultsDeep(rest, {
         client: public_websocket.hostname
       },
       port: {
-        server: private_websocket.port,
-        client: public_websocket.port
+        server: parseInt(private_websocket.port, 10),
+        client: parseInt(public_websocket.port, 10)
       }
     }
   }
@@ -134,4 +134,6 @@ if (hook) {
 
 const config = webpack_settings;
 
-serve({config});
+const argv = {};
+
+serve(argv, {config});
