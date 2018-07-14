@@ -135,7 +135,7 @@ let webpack_settings = (0, _lodash.defaultsDeep)(rest, {
     dev: {
       publicPath: public_path
     },
-    hot: {
+    hotClient: {
       https: use_https,
       host: {
         server: private_websocket.hostname,

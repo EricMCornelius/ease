@@ -111,7 +111,7 @@ let webpack_settings = defaultsDeep(rest, {
     dev: {
       publicPath: public_path
     },
-    hot: {
+    hotClient: {
       https: use_https,
       host: {
         server: private_websocket.hostname,
