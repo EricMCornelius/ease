@@ -5,21 +5,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.log = exports.cache = exports.standard_resolver = exports.standard_transformer_filter = exports.standard_transformer = exports.webpack_opts = exports.mocha_opts = exports.eslint_opts = exports.babel_opts = exports.formatter = undefined;
 
-var _fs = require('fs');
-
-var _fs2 = _interopRequireDefault(_fs);
-
-var _path = require('path');
-
-var _path2 = _interopRequireDefault(_path);
-
-var _lodash = require('lodash');
-
-var _lodash2 = _interopRequireDefault(_lodash);
-
 var _logger = require('./logger');
 
 var _logger2 = _interopRequireDefault(_logger);
+
+var _fs = require('fs');
+
+var _path = require('path');
+
+var _lodash = require('lodash');
 
 var _shelljs = require('shelljs');
 
@@ -35,15 +29,15 @@ const log = new _logger2.default({ level: process.env.LOG_LEVEL || 'info' });
 
 global.log = log;
 
-const cache_dir = _path2.default.resolve('.ease_cache');
+const cache_dir = (0, _path.resolve)('.ease_cache');
 
 const get_cache = () => new _cache2.default({ dir: cache_dir });
 
 const get_packages = dir => (0, _shelljs.find)(dir).filter(file => /package\.json$/.test(file));
 
 const get_ease_deps = dir => get_packages(dir).reduce((agg, file) => {
-  const dir = _path2.default.dirname(file);
-  const dep = _path2.default.basename(dir);
+  const dir = (0, _path.dirname)(file);
+  const dep = (0, _path.basename)(dir);
   if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1 && dep.indexOf('source-map-support') === -1) {
     return agg;
   }
@@ -51,7 +45,7 @@ const get_ease_deps = dir => get_packages(dir).reduce((agg, file) => {
   return agg;
 }, {});
 
-const ease_dep_dir = _path2.default.resolve(__dirname, '../node_modules');
+const ease_dep_dir = (0, _path.resolve)(__dirname, '../node_modules');
 
 const cache = get_cache();
 
@@ -65,7 +59,7 @@ try {
 
 let project_package = '';
 try {
-  project_package = _fs2.default.readFileSync('package.json');
+  project_package = (0, _fs.readFileSync)('package.json');
 } catch (err) {}
 
 let project_dep_trie = null;
@@ -73,7 +67,7 @@ const project_deps_key = `${cache.hash(project_package)}.deps`;
 try {
   project_dep_trie = cache.get(project_deps_key);
 } catch (err) {
-  project_dep_trie = get_packages(process.cwd()).map(dep => dep.split('/')).reduce((agg, parts) => _lodash2.default.set(agg, parts, {}), {});
+  project_dep_trie = get_packages(process.cwd()).map(dep => dep.split('/')).reduce((agg, parts) => (0, _lodash.set)(agg, parts, {}), {});
   cache.put(project_deps_key, project_dep_trie);
 }
 
@@ -93,7 +87,7 @@ const matching_prefixes = path => matching_prefixes_impl(project_dep_trie, path.
 
 const formatter = (percentage, message) => {
   const formatted = `${(100.0 * percentage).toFixed(1)}%: ${message}`;
-  if (_lodash2.default.isFunction(process.stdout.clearLine)) {
+  if ((0, _lodash.isFunction)(process.stdout.clearLine)) {
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
     process.stdout.write(formatted);
@@ -185,8 +179,8 @@ let eslint_default_opts = {
 
 // set the default opts to the .eslintrc contents if they exist, otherwise use ease defaults
 try {
-  const root_eslint_file = _path2.default.resolve(process.cwd(), '.eslintrc');
-  eslint_default_opts = JSON.parse(_fs2.default.readFileSync(root_eslint_file));
+  const root_eslint_file = (0, _path.resolve)(process.cwd(), '.eslintrc');
+  eslint_default_opts = JSON.parse((0, _fs.readFileSync)(root_eslint_file));
 } catch (err) {}
 
 let webpack_opts = {};
@@ -194,8 +188,8 @@ let webpack_default_opts = {};
 
 // set the default opts to the webpack.config.js
 try {
-  const webpack_file = _path2.default.resolve(process.cwd(), 'webpack.config.js');
-  if (_fs2.default.existsSync(webpack_file)) {
+  const webpack_file = (0, _path.resolve)(process.cwd(), 'webpack.config.js');
+  if ((0, _fs.existsSync)(webpack_file)) {
     webpack_default_opts = require(webpack_file);
   }
 } catch (err) {
@@ -224,11 +218,11 @@ let config = {};
 
 // merge config from the .ease_config file
 try {
-  const config_file = _path2.default.resolve(process.cwd(), process.env.EASE_CONFIG || '.ease_config');
+  const config_file = (0, _path.resolve)(process.cwd(), process.env.EASE_CONFIG || '.ease_config');
   const config = require(config_file);
-  _lodash2.default.defaultsDeep(eslint_opts, config.eslint, eslint_default_opts);
-  _lodash2.default.defaultsDeep(mocha_opts, config.mocha, mocha_default_opts);
-  _lodash2.default.defaultsDeep(webpack_opts, config.webpack, webpack_default_opts);
+  (0, _lodash.defaultsDeep)(eslint_opts, config.eslint, eslint_default_opts);
+  (0, _lodash.defaultsDeep)(mocha_opts, config.mocha, mocha_default_opts);
+  (0, _lodash.defaultsDeep)(webpack_opts, config.webpack, webpack_default_opts);
 
   const _ref = config.babel || {},
         { override = false, targets } = _ref,
@@ -237,7 +231,7 @@ try {
     exports.babel_opts = babel_opts = config_babel_opts;
   } else if (targets) {
     // if targets are provided, set up babel env preset
-    _lodash2.default.defaultsDeep(config_babel_opts, babel_default_opts);
+    (0, _lodash.defaultsDeep)(config_babel_opts, babel_default_opts);
 
     const { plugins = [], presets = [] } = config_babel_opts,
           rest = _objectWithoutProperties(config_babel_opts, ['plugins', 'presets']);
@@ -247,7 +241,7 @@ try {
       plugins
     }, rest);
   } else {
-    _lodash2.default.defaultsDeep(babel_opts, config.babel, babel_default_opts);
+    (0, _lodash.defaultsDeep)(babel_opts, config.babel, babel_default_opts);
   }
 
   if (config.transform_filter) {
@@ -262,6 +256,35 @@ try {
   exports.eslint_opts = eslint_opts = eslint_default_opts;
   exports.babel_opts = babel_opts = babel_default_opts;
 }
+
+const resolve_babel_dep = type => plugin => {
+  let plugin_name = null;
+  let plugin_args = [];
+
+  if ((0, _lodash.isString)(plugin)) {
+    plugin_name = plugin;
+  } else if ((0, _lodash.isArray)(plugin)) {
+    const [name, ...args] = plugin;
+    plugin_name = name;
+    plugin_args = args;
+  } else {
+    return plugin;
+  }
+
+  const prefixed = plugin_name.startsWith(`babel-${type}`) ? plugin_name : `babel-${type}-${plugin_name}`;
+  const plugin_path = (0, _path.resolve)(__dirname, '../node_modules', prefixed);
+  if ((0, _fs.existsSync)(plugin_path)) {
+    return [plugin_path, ...plugin_args];
+  }
+
+  return plugin;
+};
+
+const resolve_babel_plugin = resolve_babel_dep('plugin');
+const resolve_babel_preset = resolve_babel_dep('preset');
+
+babel_opts.plugins = babel_opts.plugins.map(resolve_babel_plugin);
+babel_opts.presets = babel_opts.presets.map(resolve_babel_preset);
 
 exports.formatter = formatter;
 exports.babel_opts = babel_opts;

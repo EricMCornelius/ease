@@ -132,7 +132,7 @@ let webpack_settings = (0, _lodash.defaultsDeep)(rest, {
   serve: {
     host,
     port,
-    dev: {
+    devMiddleware: {
       publicPath: public_path
     },
     hotClient: {

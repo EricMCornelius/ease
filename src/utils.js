@@ -1,7 +1,8 @@
-import fs from 'fs';
-import path from 'path';
-import _ from 'lodash';
 import Logger from './logger';
+
+import {readFileSync, existsSync} from 'fs';
+import {resolve, dirname, basename, split} from 'path';
+import {set, isString, isArray, isFunction, defaultsDeep} from 'lodash';
 
 import {find} from 'shelljs';
 import Cache from './cache';
@@ -10,7 +11,7 @@ const log = new Logger({level: process.env.LOG_LEVEL || 'info'});
 
 global.log = log;
 
-const cache_dir = path.resolve('.ease_cache');
+const cache_dir = resolve('.ease_cache');
 
 const get_cache = () => new Cache({dir: cache_dir});
 
@@ -19,8 +20,8 @@ const get_packages = dir => find(dir)
 
 const get_ease_deps = dir => get_packages(dir)
   .reduce((agg, file) => {
-    const dir = path.dirname(file);
-    const dep = path.basename(dir);
+    const dir = dirname(file);
+    const dep = basename(dir);
     if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1 && dep.indexOf('source-map-support') === -1) {
       return agg;
     }
@@ -28,7 +29,7 @@ const get_ease_deps = dir => get_packages(dir)
     return agg;
   }, {});
 
-const ease_dep_dir = path.resolve(__dirname, '../node_modules');
+const ease_dep_dir = resolve(__dirname, '../node_modules');
 
 const cache = get_cache();
 
@@ -43,7 +44,7 @@ catch (err) {
 
 let project_package = '';
 try {
-  project_package = fs.readFileSync('package.json');
+  project_package = readFileSync('package.json');
 }
 catch (err) {
 
@@ -57,7 +58,7 @@ try {
 catch (err) {
   project_dep_trie = get_packages(process.cwd())
     .map(dep => dep.split('/'))
-    .reduce((agg, parts) => _.set(agg, parts, {}), {});
+    .reduce((agg, parts) => set(agg, parts, {}), {});
   cache.put(project_deps_key, project_dep_trie);
 }
 
@@ -79,7 +80,7 @@ const matching_prefixes = path => matching_prefixes_impl(project_dep_trie, path.
 
 const formatter = (percentage, message) => {
   const formatted = `${(100.0 * percentage).toFixed(1)}%: ${message}`;
-  if (_.isFunction(process.stdout.clearLine)) {
+  if (isFunction(process.stdout.clearLine)) {
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
     process.stdout.write(formatted);
@@ -92,8 +93,8 @@ const formatter = (percentage, message) => {
 let babel_opts = {};
 const babel_default_opts = {
   babelrc: false,
-  presets: ['env', 'react', 'stage-2'],
-  plugins: ['syntax-decorators', 'transform-decorators-legacy', 'transform-export-extensions']
+  presets: ['@babel/env', '@babel/react', '@babel/stage-2'],
+  plugins: ['@babel/syntax-decorators', 'transform-decorators-legacy', 'transform-export-extensions']
 };
 
 let mocha_opts = {};
@@ -172,8 +173,8 @@ let eslint_default_opts = {
 
 // set the default opts to the .eslintrc contents if they exist, otherwise use ease defaults
 try {
-  const root_eslint_file = path.resolve(process.cwd(), '.eslintrc');
-  eslint_default_opts = JSON.parse(fs.readFileSync(root_eslint_file));
+  const root_eslint_file = resolve(process.cwd(), '.eslintrc');
+  eslint_default_opts = JSON.parse(readFileSync(root_eslint_file));
 }
 catch(err) {
 
@@ -184,8 +185,8 @@ let webpack_default_opts = {};
 
 // set the default opts to the webpack.config.js
 try {
-  const webpack_file = path.resolve(process.cwd(), 'webpack.config.js');
-  if (fs.existsSync(webpack_file)) {
+  const webpack_file = resolve(process.cwd(), 'webpack.config.js');
+  if (existsSync(webpack_file)) {
     webpack_default_opts = require(webpack_file);
   }
 }
@@ -215,11 +216,11 @@ let config = {};
 
 // merge config from the .ease_config file
 try {
-  const config_file = path.resolve(process.cwd(), process.env.EASE_CONFIG || '.ease_config');
+  const config_file = resolve(process.cwd(), process.env.EASE_CONFIG || '.ease_config');
   const config = require(config_file);
-  _.defaultsDeep(eslint_opts, config.eslint, eslint_default_opts);
-  _.defaultsDeep(mocha_opts, config.mocha, mocha_default_opts);
-  _.defaultsDeep(webpack_opts, config.webpack, webpack_default_opts);
+  defaultsDeep(eslint_opts, config.eslint, eslint_default_opts);
+  defaultsDeep(mocha_opts, config.mocha, mocha_default_opts);
+  defaultsDeep(webpack_opts, config.webpack, webpack_default_opts);
 
   const {override = false, targets, ...config_babel_opts} = (config.babel || {});
   if (override) {
@@ -227,7 +228,7 @@ try {
   }
   else if (targets) {
     // if targets are provided, set up babel env preset
-    _.defaultsDeep(config_babel_opts, babel_default_opts);
+    defaultsDeep(config_babel_opts, babel_default_opts);
 
     const {plugins = [], presets = [], ...rest} = config_babel_opts;
 
@@ -238,7 +239,7 @@ try {
     };
   }
   else {
-    _.defaultsDeep(babel_opts, config.babel, babel_default_opts);
+    defaultsDeep(babel_opts, config.babel, babel_default_opts);
   }
 
   if (config.transform_filter) {
@@ -254,6 +255,37 @@ catch(err) {
   eslint_opts = eslint_default_opts;
   babel_opts = babel_default_opts;
 }
+
+const resolve_babel_dep = type => plugin => {
+  let plugin_name = null;
+  let plugin_args = [];
+
+  if (isString(plugin)) {
+    plugin_name = plugin;
+  }
+  else if (isArray(plugin)) {
+    const [name, ...args] = plugin;
+    plugin_name = name;
+    plugin_args = args;
+  }
+  else {
+    return plugin;
+  }
+
+  const prefixed = plugin_name.startsWith(`babel-${type}`) ? plugin_name : `babel-${type}-${plugin_name}`;
+  const plugin_path = resolve(__dirname, '../node_modules', prefixed);
+  if (existsSync(plugin_path)) {
+    return [plugin_path, ...plugin_args];
+  }
+
+  return plugin;
+};
+
+const resolve_babel_plugin = resolve_babel_dep('plugin');
+const resolve_babel_preset = resolve_babel_dep('preset');
+
+babel_opts.plugins = babel_opts.plugins.map(resolve_babel_plugin);
+babel_opts.presets = babel_opts.presets.map(resolve_babel_preset);
 
 export {
   formatter,
