@@ -1,55 +1,49 @@
 #!/usr/bin/env node
-'use strict';
+"use strict";
 
-var _lodash = require('lodash');
+var _lodash = _interopRequireDefault(require("lodash"));
 
-var _lodash2 = _interopRequireDefault(_lodash);
+var _setpath = _interopRequireDefault(require("./setpath"));
 
-var _setpath = require('./setpath');
+var _webpack = _interopRequireDefault(require("webpack"));
 
-var _setpath2 = _interopRequireDefault(_setpath);
+var _path = _interopRequireDefault(require("path"));
 
-var _webpack = require('webpack');
+var _module_patch = _interopRequireDefault(require("./module_patch"));
 
-var _webpack2 = _interopRequireDefault(_webpack);
+var _utils = require("./utils");
 
-var _path = require('path');
-
-var _path2 = _interopRequireDefault(_path);
-
-var _module_patch = require('./module_patch');
-
-var _module_patch2 = _interopRequireDefault(_module_patch);
-
-var _utils = require('./utils');
-
-var _webpackBundleAnalyzer = require('webpack-bundle-analyzer');
+var _webpackBundleAnalyzer = require("webpack-bundle-analyzer");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+const entry = _path.default.resolve(process.argv[2]);
 
-const entry = _path2.default.resolve(process.argv[2]);
-const pathname = _path2.default.resolve(process.argv[3]);
-const directory = _path2.default.dirname(pathname);
-const filename = _path2.default.basename(pathname);
+const pathname = _path.default.resolve(process.argv[3]);
+
+const directory = _path.default.dirname(pathname);
+
+const filename = _path.default.basename(pathname);
+
 const libname = filename.split('.')[0];
-
-(0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
-
-const { hook, reload_url, port, name, replacements = [] } = _utils.webpack_opts,
-      rest = _objectWithoutProperties(_utils.webpack_opts, ['hook', 'reload_url', 'port', 'name', 'replacements']);
-
+(0, _module_patch.default)(_utils.standard_transformer, _utils.standard_resolver);
+const {
+  hook,
+  reload_url,
+  port,
+  name,
+  replacements = [],
+  ...rest
+} = _utils.webpack_opts;
 const analyzer = new _webpackBundleAnalyzer.BundleAnalyzerPlugin({
   analyzerMode: 'static',
   reportFilename: 'report.html',
   openAnalyzer: false,
   logLevel: 'info'
 });
+const replacement_plugins = replacements.map(([key, value]) => new _webpack.default.NormalModuleReplacementPlugin(key, value));
 
-const replacement_plugins = replacements.map(([key, value]) => new _webpack2.default.NormalModuleReplacementPlugin(key, value));
-
-let webpack_settings = _lodash2.default.defaultsDeep(rest, {
+let webpack_settings = _lodash.default.defaultsDeep(rest, {
   entry,
   devtool: 'cheap-module-source-map',
   output: {
@@ -59,7 +53,7 @@ let webpack_settings = _lodash2.default.defaultsDeep(rest, {
     libraryTarget: 'commonjs2'
   },
   resolveLoader: {
-    modules: [_path2.default.resolve(__dirname, '../node_modules')]
+    modules: [_path.default.resolve(__dirname, '../node_modules')]
   },
   resolve: {
     modules: ['node_modules', process.cwd(), '.']
@@ -68,12 +62,12 @@ let webpack_settings = _lodash2.default.defaultsDeep(rest, {
     'external': true
   }],
   target: 'node',
-  plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.DefinePlugin({
+  plugins: [new _webpack.default.ProgressPlugin(_utils.formatter), new _webpack.default.DefinePlugin({
     'process.env.NODE_ENV': '"production"'
-  }), new _webpack2.default.LoaderOptionsPlugin({
+  }), new _webpack.default.LoaderOptionsPlugin({
     minimize: true,
     debug: false
-  }), ...replacement_plugins, new _webpack2.default.optimize.ModuleConcatenationPlugin(), analyzer],
+  }), ...replacement_plugins, new _webpack.default.optimize.ModuleConcatenationPlugin(), analyzer],
   module: {
     rules: [{
       enforce: 'pre',
@@ -103,12 +97,13 @@ let webpack_settings = _lodash2.default.defaultsDeep(rest, {
 
 if (hook) {
   const res = hook(webpack_settings, 'bundle-node');
+
   if (res) {
     webpack_settings = res;
   }
 }
 
-(0, _webpack2.default)(webpack_settings, (err, stats) => {
+(0, _webpack.default)(webpack_settings, (err, stats) => {
   if (err) {
     throw err;
   }

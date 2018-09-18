@@ -1,66 +1,57 @@
 #!/usr/bin/env node
-'use strict';
+"use strict";
 
-var _setpath = require('./setpath');
+var _setpath = _interopRequireDefault(require("./setpath"));
 
-var _setpath2 = _interopRequireDefault(_setpath);
+var _lodash = require("lodash");
 
-var _lodash = require('lodash');
+var _url = require("url");
 
-var _url = require('url');
+var _webpack = _interopRequireDefault(require("webpack"));
 
-var _webpack = require('webpack');
+var _webpackServe = _interopRequireDefault(require("webpack-serve"));
 
-var _webpack2 = _interopRequireDefault(_webpack);
+var _path = _interopRequireDefault(require("path"));
 
-var _webpackServe = require('webpack-serve');
+var _module_patch = _interopRequireDefault(require("./module_patch"));
 
-var _webpackServe2 = _interopRequireDefault(_webpackServe);
+var _utils = require("./utils");
 
-var _path = require('path');
+var _precss = _interopRequireDefault(require("precss"));
 
-var _path2 = _interopRequireDefault(_path);
-
-var _module_patch = require('./module_patch');
-
-var _module_patch2 = _interopRequireDefault(_module_patch);
-
-var _utils = require('./utils');
-
-var _precss = require('precss');
-
-var _precss2 = _interopRequireDefault(_precss);
-
-var _autoprefixer = require('autoprefixer');
-
-var _autoprefixer2 = _interopRequireDefault(_autoprefixer);
+var _autoprefixer = _interopRequireDefault(require("autoprefixer"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
+const entry = _path.default.resolve(process.argv[2]);
 
-const entry = _path2.default.resolve(process.argv[2]);
 const output = process.argv[3];
 
-const pathname = _path2.default.resolve(output || 'dist/bundle.js');
-const directory = output ? _path2.default.dirname(pathname) : '/dist';
-const filename = output ? _path2.default.basename(pathname) : 'bundle';
+const pathname = _path.default.resolve(output || 'dist/bundle.js');
 
-(0, _module_patch2.default)(_utils.standard_transformer, _utils.standard_resolver);
-
-let { build_dir, reload_url = 'ws://localhost:8081', backend_url = 'ws://localhost:8081', host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type } = _utils.webpack_opts,
-    rest = _objectWithoutProperties(_utils.webpack_opts, ['build_dir', 'reload_url', 'backend_url', 'host', 'port', 'public_path', 'hook', 'name', 'type']);
-
+const directory = output ? _path.default.dirname(pathname) : '/dist';
+const filename = output ? _path.default.basename(pathname) : 'bundle';
+(0, _module_patch.default)(_utils.standard_transformer, _utils.standard_resolver);
+let {
+  build_dir,
+  reload_url = 'ws://localhost:8081',
+  backend_url = 'ws://localhost:8081',
+  host = 'localhost',
+  port = 8888,
+  public_path = directory,
+  hook,
+  name = filename,
+  type,
+  ...rest
+} = _utils.webpack_opts;
 const public_websocket = (0, _url.parse)(reload_url);
 const private_websocket = (0, _url.parse)(backend_url);
-
 const use_https = public_websocket.protocol === 'wss:';
 
-const resolve = val => _path2.default.resolve(__dirname, '../node_modules', val);
+const resolve = val => _path.default.resolve(__dirname, '../node_modules', val); // add hot loader plugin to babel
 
-// add hot loader plugin to babel
+
 _utils.babel_opts.plugins = (_utils.babel_opts.plugins || []).concat('react-hot-loader/babel');
-
 let webpack_settings = (0, _lodash.defaultsDeep)(rest, {
   entry: {
     [name]: entry
@@ -70,10 +61,11 @@ let webpack_settings = (0, _lodash.defaultsDeep)(rest, {
     filename: '[name].js',
     publicPath: public_path,
     globalObject: 'this' // TODO: re-evaulate after https://github.com/webpack/webpack/issues/6642 ...
+
   },
   devtool: 'cheap-module-inline-source-map',
   resolveLoader: {
-    modules: [_path2.default.resolve(__dirname, '../node_modules')]
+    modules: [_path.default.resolve(__dirname, '../node_modules')]
   },
   resolve: {
     modules: ['node_modules', 'bower_components', process.cwd()]
@@ -82,10 +74,9 @@ let webpack_settings = (0, _lodash.defaultsDeep)(rest, {
     'external': true,
     'regenerator': true
   }],
-  plugins: [new _webpack2.default.ProgressPlugin(_utils.formatter), new _webpack2.default.DefinePlugin({
+  plugins: [new _webpack.default.ProgressPlugin(_utils.formatter), new _webpack.default.DefinePlugin({
     'process.env.NODE_ENV': '"dev"'
-  })
-  // new DashboardPlugin()
+  }) // new DashboardPlugin()
   ],
   module: {
     rules: [{
@@ -151,13 +142,14 @@ let webpack_settings = (0, _lodash.defaultsDeep)(rest, {
 
 if (hook) {
   const res = hook(webpack_settings, 'run-web');
+
   if (res) {
     webpack_settings = res;
   }
 }
 
 const config = webpack_settings;
-
 const argv = {};
-
-(0, _webpackServe2.default)(argv, { config });
+(0, _webpackServe.default)(argv, {
+  config
+});

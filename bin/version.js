@@ -1,10 +1,8 @@
 #!/usr/bin/env node
-'use strict';
+"use strict";
 
-var _package = require('../package');
-
-var _package2 = _interopRequireDefault(_package);
+var _package = _interopRequireDefault(require("../package"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-console.log(_package2.default.version);
+console.log(_package.default.version);

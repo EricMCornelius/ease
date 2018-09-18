@@ -94,7 +94,7 @@ let babel_opts = {};
 const babel_default_opts = {
   babelrc: false,
   presets: ['@babel/env', '@babel/react', '@babel/stage-2'],
-  plugins: ['@babel/syntax-decorators', 'transform-decorators-legacy', 'transform-export-extensions']
+  plugins: ['@babel/syntax-decorators']
 };
 
 let mocha_opts = {};

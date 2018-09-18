@@ -12,12 +12,12 @@ import yaml from 'js-yaml';
 import {babel_opts, mocha_opts, eslint_opts, standard_resolver, standard_transformer_filter, log, cache} from './utils';
 
 import {Collector, Reporter} from 'istanbul';
-import {transform} from 'babel-core';
+import {transform} from '@babel/core';
 import {SourceCode, CLIEngine} from 'eslint';
 import mocha from 'mocha';
 import jv from 'junit-viewer';
 
-import polyfill from 'babel-polyfill';
+import polyfill from '@babel/polyfill';
 import sourcemaps from 'source-map-support';
 
 const sourcemap_cache = {};

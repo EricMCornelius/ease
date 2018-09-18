@@ -1,21 +1,14 @@
-'use strict';
+"use strict";
 
-var _yargs = require('yargs');
+var _yargs = _interopRequireDefault(require("yargs"));
 
-var _yargs2 = _interopRequireDefault(_yargs);
+var commands = _interopRequireWildcard(require("./commands"));
 
-var _commands = require('./commands');
+var _polyfill = _interopRequireDefault(require("@babel/polyfill"));
 
-var commands = _interopRequireWildcard(_commands);
-
-var _babelPolyfill = require('babel-polyfill');
-
-var _babelPolyfill2 = _interopRequireDefault(_babelPolyfill);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) { var desc = Object.defineProperty && Object.getOwnPropertyDescriptor ? Object.getOwnPropertyDescriptor(obj, key) : {}; if (desc.get || desc.set) { Object.defineProperty(newObj, key, desc); } else { newObj[key] = obj[key]; } } } } newObj.default = obj; return newObj; } }
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-Object.entries(commands).map(([name, cmd]) => _yargs2.default.command(cmd));
-
-_yargs2.default.help().argv;
+Object.entries(commands).map(([name, cmd]) => _yargs.default.command(cmd));
+_yargs.default.help().argv;

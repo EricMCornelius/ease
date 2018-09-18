@@ -1,55 +1,54 @@
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.log = exports.cache = exports.standard_resolver = exports.standard_transformer_filter = exports.standard_transformer = exports.webpack_opts = exports.mocha_opts = exports.eslint_opts = exports.babel_opts = exports.formatter = undefined;
+exports.log = exports.cache = exports.standard_resolver = exports.standard_transformer_filter = exports.standard_transformer = exports.webpack_opts = exports.mocha_opts = exports.eslint_opts = exports.babel_opts = exports.formatter = void 0;
 
-var _logger = require('./logger');
+var _logger = _interopRequireDefault(require("./logger"));
 
-var _logger2 = _interopRequireDefault(_logger);
+var _fs = require("fs");
 
-var _fs = require('fs');
+var _path = require("path");
 
-var _path = require('path');
+var _lodash = require("lodash");
 
-var _lodash = require('lodash');
+var _shelljs = require("shelljs");
 
-var _shelljs = require('shelljs');
-
-var _cache = require('./cache');
-
-var _cache2 = _interopRequireDefault(_cache);
+var _cache = _interopRequireDefault(require("./cache"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-function _objectWithoutProperties(obj, keys) { var target = {}; for (var i in obj) { if (keys.indexOf(i) >= 0) continue; if (!Object.prototype.hasOwnProperty.call(obj, i)) continue; target[i] = obj[i]; } return target; }
-
-const log = new _logger2.default({ level: process.env.LOG_LEVEL || 'info' });
-
+const log = new _logger.default({
+  level: process.env.LOG_LEVEL || 'info'
+});
+exports.log = log;
 global.log = log;
-
 const cache_dir = (0, _path.resolve)('.ease_cache');
 
-const get_cache = () => new _cache2.default({ dir: cache_dir });
+const get_cache = () => new _cache.default({
+  dir: cache_dir
+});
 
 const get_packages = dir => (0, _shelljs.find)(dir).filter(file => /package\.json$/.test(file));
 
 const get_ease_deps = dir => get_packages(dir).reduce((agg, file) => {
   const dir = (0, _path.dirname)(file);
   const dep = (0, _path.basename)(dir);
+
   if (dep.indexOf('webpack') === -1 && dep.indexOf('babel') === -1 && dep.indexOf('source-map-support') === -1) {
     return agg;
   }
+
   agg[dep] = dir;
   return agg;
 }, {});
 
 const ease_dep_dir = (0, _path.resolve)(__dirname, '../node_modules');
-
 const cache = get_cache();
-
+exports.cache = cache;
 let ease_deps = null;
+
 try {
   ease_deps = cache.get('.ease_deps');
 } catch (err) {
@@ -58,12 +57,14 @@ try {
 }
 
 let project_package = '';
+
 try {
   project_package = (0, _fs.readFileSync)('package.json');
 } catch (err) {}
 
 let project_dep_trie = null;
 const project_deps_key = `${cache.hash(project_package)}.deps`;
+
 try {
   project_dep_trie = cache.get(project_deps_key);
 } catch (err) {
@@ -79,7 +80,6 @@ const matching_prefixes_impl = (node, path, curr = [], results = []) => {
   const next = path.shift();
   const lookup = node[next];
   curr = curr.concat(next);
-
   return lookup ? matching_prefixes_impl(lookup, path, curr, lookup['package.json'] ? results.concat(curr.join('/')) : results) : results;
 };
 
@@ -87,6 +87,7 @@ const matching_prefixes = path => matching_prefixes_impl(project_dep_trie, path.
 
 const formatter = (percentage, message) => {
   const formatted = `${(100.0 * percentage).toFixed(1)}%: ${message}`;
+
   if ((0, _lodash.isFunction)(process.stdout.clearLine)) {
     process.stdout.clearLine();
     process.stdout.cursorTo(0);
@@ -96,14 +97,16 @@ const formatter = (percentage, message) => {
   }
 };
 
+exports.formatter = formatter;
 let babel_opts = {};
+exports.babel_opts = babel_opts;
 const babel_default_opts = {
   babelrc: false,
-  presets: ['env', 'react', 'stage-2'],
-  plugins: ['syntax-decorators', 'transform-decorators-legacy', 'transform-export-extensions']
+  presets: ['@babel/env', '@babel/react', '@babel/stage-2'],
+  plugins: ['@babel/syntax-decorators']
 };
-
 let mocha_opts = {};
+exports.mocha_opts = mocha_opts;
 const mocha_default_opts = {
   timeout: 20000,
   reporter: 'mocha-jenkins-reporter',
@@ -113,9 +116,8 @@ const mocha_default_opts = {
     junit_report_stack: 1
   }
 };
-
 let eslint_opts = {};
-
+exports.eslint_opts = eslint_opts;
 let eslint_default_opts = {
   'env': {
     'node': true
@@ -132,14 +134,37 @@ let eslint_default_opts = {
   'rules': {
     'strict': 0,
     'semi': [2, 'always'],
-    'semi-spacing': [2, { 'before': false, 'after': true }],
-    'arrow-spacing': [2, { 'before': true, 'after': true }],
-    'key-spacing': [2, { 'beforeColon': false, 'afterColon': true }],
-    'keyword-spacing': [2, { 'before': true, 'after': true, 'overrides': { 'catch': { 'after': false } } }],
-    'max-depth': [2, { max: 4 }],
-    'max-nested-callbacks': [2, { max: 3 }],
+    'semi-spacing': [2, {
+      'before': false,
+      'after': true
+    }],
+    'arrow-spacing': [2, {
+      'before': true,
+      'after': true
+    }],
+    'key-spacing': [2, {
+      'beforeColon': false,
+      'afterColon': true
+    }],
+    'keyword-spacing': [2, {
+      'before': true,
+      'after': true,
+      'overrides': {
+        'catch': {
+          'after': false
+        }
+      }
+    }],
+    'max-depth': [2, {
+      max: 4
+    }],
+    'max-nested-callbacks': [2, {
+      max: 3
+    }],
     'quote-props': [2, 'as-needed'],
-    'no-trailing-spaces': [2, { 'skipBlankLines': true }],
+    'no-trailing-spaces': [2, {
+      'skipBlankLines': true
+    }],
     'no-var': 2,
     'arrow-body-style': [2, 'as-needed'],
     'arrow-parens': [2, 'as-needed'],
@@ -171,24 +196,28 @@ let eslint_default_opts = {
     'prefer-const': 2,
     'prefer-rest-params': 2,
     'quotes': [2, 'single'],
-    'indent': [2, 2, { 'SwitchCase': 1 }],
-    'brace-style': [2, 'stroustrup', { 'allowSingleLine': true }],
+    'indent': [2, 2, {
+      'SwitchCase': 1
+    }],
+    'brace-style': [2, 'stroustrup', {
+      'allowSingleLine': true
+    }],
     'camelcase': 0
   }
-};
+}; // set the default opts to the .eslintrc contents if they exist, otherwise use ease defaults
 
-// set the default opts to the .eslintrc contents if they exist, otherwise use ease defaults
 try {
   const root_eslint_file = (0, _path.resolve)(process.cwd(), '.eslintrc');
   eslint_default_opts = JSON.parse((0, _fs.readFileSync)(root_eslint_file));
 } catch (err) {}
 
 let webpack_opts = {};
-let webpack_default_opts = {};
+exports.webpack_opts = webpack_opts;
+let webpack_default_opts = {}; // set the default opts to the webpack.config.js
 
-// set the default opts to the webpack.config.js
 try {
   const webpack_file = (0, _path.resolve)(process.cwd(), 'webpack.config.js');
+
   if ((0, _fs.existsSync)(webpack_file)) {
     webpack_default_opts = require(webpack_file);
   }
@@ -198,14 +227,21 @@ try {
 
 let standard_transformer = (content, filename) => content;
 
+exports.standard_transformer = standard_transformer;
+
 let standard_transformer_filter = filename => filename.indexOf('node_modules') === -1;
+
+exports.standard_transformer_filter = standard_transformer_filter;
 
 let standard_resolver = (request, parent) => {
   log.debug(`Resolving ${request} in ${parent.id}`);
-
-  if (ease_deps[request]) return { request: ease_deps[request] };
-  if (!parent.id.startsWith(process.cwd())) return { request, parent };
-
+  if (ease_deps[request]) return {
+    request: ease_deps[request]
+  };
+  if (!parent.id.startsWith(process.cwd())) return {
+    request,
+    parent
+  };
   const prefixes = matching_prefixes(parent.id);
   parent.paths = prefixes.concat(parent.paths);
   return {
@@ -214,32 +250,41 @@ let standard_resolver = (request, parent) => {
   };
 };
 
-let config = {};
+exports.standard_resolver = standard_resolver;
+let config = {}; // merge config from the .ease_config file
 
-// merge config from the .ease_config file
 try {
   const config_file = (0, _path.resolve)(process.cwd(), process.env.EASE_CONFIG || '.ease_config');
+
   const config = require(config_file);
+
   (0, _lodash.defaultsDeep)(eslint_opts, config.eslint, eslint_default_opts);
   (0, _lodash.defaultsDeep)(mocha_opts, config.mocha, mocha_default_opts);
   (0, _lodash.defaultsDeep)(webpack_opts, config.webpack, webpack_default_opts);
+  const {
+    override = false,
+    targets,
+    ...config_babel_opts
+  } = config.babel || {};
 
-  const _ref = config.babel || {},
-        { override = false, targets } = _ref,
-        config_babel_opts = _objectWithoutProperties(_ref, ['override', 'targets']);
   if (override) {
     exports.babel_opts = babel_opts = config_babel_opts;
   } else if (targets) {
     // if targets are provided, set up babel env preset
     (0, _lodash.defaultsDeep)(config_babel_opts, babel_default_opts);
-
-    const { plugins = [], presets = [] } = config_babel_opts,
-          rest = _objectWithoutProperties(config_babel_opts, ['plugins', 'presets']);
-
-    exports.babel_opts = babel_opts = Object.assign({
-      presets: [['env', { targets, debug: true }], ...presets.filter(name => name !== 'env')],
-      plugins
-    }, rest);
+    const {
+      plugins = [],
+      presets = [],
+      ...rest
+    } = config_babel_opts;
+    exports.babel_opts = babel_opts = {
+      presets: [['env', {
+        targets,
+        debug: true
+      }], ...presets.filter(name => name !== 'env')],
+      plugins,
+      ...rest
+    };
   } else {
     (0, _lodash.defaultsDeep)(babel_opts, config.babel, babel_default_opts);
   }
@@ -273,6 +318,7 @@ const resolve_babel_dep = type => plugin => {
 
   const prefixed = plugin_name.startsWith(`babel-${type}`) ? plugin_name : `babel-${type}-${plugin_name}`;
   const plugin_path = (0, _path.resolve)(__dirname, '../node_modules', prefixed);
+
   if ((0, _fs.existsSync)(plugin_path)) {
     return [plugin_path, ...plugin_args];
   }
@@ -282,17 +328,5 @@ const resolve_babel_dep = type => plugin => {
 
 const resolve_babel_plugin = resolve_babel_dep('plugin');
 const resolve_babel_preset = resolve_babel_dep('preset');
-
 babel_opts.plugins = babel_opts.plugins.map(resolve_babel_plugin);
 babel_opts.presets = babel_opts.presets.map(resolve_babel_preset);
-
-exports.formatter = formatter;
-exports.babel_opts = babel_opts;
-exports.eslint_opts = eslint_opts;
-exports.mocha_opts = mocha_opts;
-exports.webpack_opts = webpack_opts;
-exports.standard_transformer = standard_transformer;
-exports.standard_transformer_filter = standard_transformer_filter;
-exports.standard_resolver = standard_resolver;
-exports.cache = cache;
-exports.log = log;

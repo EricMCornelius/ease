@@ -1,13 +1,17 @@
-'use strict';
+"use strict";
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.default = void 0;
 const levels = ['trace', 'debug', 'info', 'warn', 'error'];
 
 class Logger {
-  constructor({ level }) {
+  constructor({
+    level
+  }) {
     let threshold = levels.indexOf(level);
+
     if (threshold === -1) {
       console.warn(`Invalid log level: ${level} - defaulting to info`);
       threshold = 2;
@@ -45,6 +49,9 @@ class Logger {
       console.error(...args);
     }
   }
-};
 
-exports.default = Logger;
+}
+
+;
+var _default = Logger;
+exports.default = _default;

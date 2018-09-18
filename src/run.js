@@ -9,8 +9,8 @@ import patcher from './module_patch';
 import {babel_opts, standard_resolver, standard_transformer_filter, log, cache} from './utils';
 import yaml from 'js-yaml';
 
-import {transform} from 'babel-core';
-import polyfill from 'babel-polyfill';
+import {transform} from '@babel/core';
+import polyfill from '@babel/polyfill';
 import sourcemaps from 'source-map-support';
 
 const sourcemap_cache = {};
