@@ -102,8 +102,8 @@ let babel_opts = {};
 exports.babel_opts = babel_opts;
 const babel_default_opts = {
   babelrc: false,
-  presets: ['@babel/env', '@babel/react', '@babel/stage-2'],
-  plugins: ['@babel/syntax-decorators']
+  presets: ['@babel/preset-env', '@babel/preset-react'],
+  plugins: ['@babel/plugin-proposal-class-properties']
 };
 let mocha_opts = {};
 exports.mocha_opts = mocha_opts;
@@ -278,10 +278,10 @@ try {
       ...rest
     } = config_babel_opts;
     exports.babel_opts = babel_opts = {
-      presets: [['env', {
+      presets: [['@babel/preset-env', {
         targets,
         debug: true
-      }], ...presets.filter(name => name !== 'env')],
+      }], ...presets.filter(name => name !== '@babel/preset-env')],
       plugins,
       ...rest
     };
@@ -316,7 +316,7 @@ const resolve_babel_dep = type => plugin => {
     return plugin;
   }
 
-  const prefixed = plugin_name.startsWith(`babel-${type}`) ? plugin_name : `babel-${type}-${plugin_name}`;
+  const prefixed = plugin_name.startsWith(`babel-${type}`) || plugin_name.startsWith(`@babel/${type}-`) ? plugin_name : `babel-${type}-${plugin_name}`;
   const plugin_path = (0, _path.resolve)(__dirname, '../node_modules', prefixed);
 
   if ((0, _fs.existsSync)(plugin_path)) {
