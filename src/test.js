@@ -20,6 +20,8 @@ import jv from 'junit-viewer';
 import polyfill from '@babel/polyfill';
 import sourcemaps from 'source-map-support';
 
+import istanbul from 'babel-plugin-istanbul';
+
 const sourcemap_cache = {};
 
 sourcemaps.install({
@@ -52,7 +54,7 @@ let cli = new CLIEngine({
   ...eslint_opts
 });
 
-babel_opts.plugins.push('istanbul');
+babel_opts.plugins.push(istanbul);
 
 process.on('beforeExit', () => {
   mkdirp.sync('reports/coverage');

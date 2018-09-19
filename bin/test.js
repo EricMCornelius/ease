@@ -33,6 +33,8 @@ var _polyfill = _interopRequireDefault(require("@babel/polyfill"));
 
 var _sourceMapSupport = _interopRequireDefault(require("source-map-support"));
 
+var _babelPluginIstanbul = _interopRequireDefault(require("babel-plugin-istanbul"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const sourcemap_cache = {};
@@ -73,7 +75,7 @@ let cli = new _eslint.CLIEngine({
   ..._utils.eslint_opts
 });
 
-_utils.babel_opts.plugins.push('istanbul');
+_utils.babel_opts.plugins.push(_babelPluginIstanbul.default);
 
 process.on('beforeExit', () => {
   _mkdirp.default.sync('reports/coverage');
