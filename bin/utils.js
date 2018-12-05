@@ -122,22 +122,8 @@ let eslint_default_opts = {
   'env': {
     'node': true
   },
-
-  /*
-  parserOptions: {
-    ecmaVersion: 8,
-    sourceType: 'module',
-    ecmaFeatures: {
-      jsx: true,
-      experimentalObjectRestSpread: true
-    }
-  },
-  */
   'extends': 'eslint:recommended',
   'parser': 'babel-eslint',
-  'rules': {
-    'strict': 0
-  },
   'rules': {
     'strict': 0,
     'semi': [2, 'always'],
@@ -202,7 +188,9 @@ let eslint_default_opts = {
     'prefer-spread': 2,
     'prefer-const': 2,
     'prefer-rest-params': 2,
-    'quotes': [2, 'single'],
+    'quotes': [2, 'single', {
+      'allowTemplateLiterals': true
+    }],
     'indent': [2, 2, {
       'SwitchCase': 1
     }],
