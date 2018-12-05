@@ -114,6 +114,7 @@ let eslint_default_opts = {
   'env': {
     'node': true
   },
+  /*
   parserOptions: {
     ecmaVersion: 8,
     sourceType: 'module',
@@ -122,7 +123,12 @@ let eslint_default_opts = {
       experimentalObjectRestSpread: true
     }
   },
+  */
   'extends': 'eslint:recommended',
+  'parser': 'babel-eslint',
+  'rules': {
+    'strict': 0
+  },
   'rules': {
     'strict': 0,
     'semi': [2, 'always'],

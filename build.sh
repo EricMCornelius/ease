@@ -1,1 +1,1 @@
-babel src -d bin
+npx babel src -d bin
