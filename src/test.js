@@ -9,9 +9,9 @@ import patcher from './module_patch';
 import {find} from 'shelljs';
 import mkdirp from 'mkdirp';
 import yaml from 'js-yaml';
-import {babel_opts, mocha_opts, eslint_opts, standard_resolver, standard_transformer_filter, log, cache} from './utils';
+import {babel_opts, coverage_opts, mocha_opts, eslint_opts, standard_resolver, standard_transformer_filter, log, cache, resolve_babel_plugin} from './utils';
 
-import {Collector, Reporter} from 'istanbul';
+import {libCoverage, createReporter, config as libConfig} from 'istanbul-api';
 import {transform} from '@babel/core';
 import {SourceCode, CLIEngine} from 'eslint';
 import mocha from 'mocha';
@@ -19,8 +19,6 @@ import jv from 'junit-viewer';
 
 import polyfill from '@babel/polyfill';
 import sourcemaps from 'source-map-support';
-
-import istanbul from 'babel-plugin-istanbul';
 
 const sourcemap_cache = {};
 
@@ -40,7 +38,7 @@ sourcemaps.install({
 });
 
 global.__tests__ = new mocha(mocha_opts);
-global.__coverage__ = {};
+global.__coverage__ = global.__coverage__ || {};
 global.__linting__ = {
   results: [],
   errorCount: 0,
@@ -54,7 +52,9 @@ let cli = new CLIEngine({
   ...eslint_opts
 });
 
-babel_opts.plugins.push(istanbul);
+// istanbul plugin configuration
+// see https://github.com/istanbuljs/nyc#selecting-files-for-coverage
+babel_opts.plugins.push(resolve_babel_plugin('istanbul').concat(coverage_opts));
 
 process.on('beforeExit', () => {
   mkdirp.sync('reports/coverage');
@@ -67,27 +67,20 @@ process.on('beforeExit', () => {
   let html_formatter = cli.getFormatter('html');
   fs.writeFileSync('reports/style/index.html', html_formatter(__linting__.results));
 
-  let collector = new Collector();
-  for (const key of Object.keys(__coverage__)) {
-    if (key.indexOf('node_modules') !== -1) {
-      delete __coverage__[key];
+  const coverage_map = libCoverage.createCoverageMap(__coverage__);
+  const config = libConfig.loadFile(null, {
+    reporting: {
+      dir: 'reports/coverage'
     }
-  }
+  });
 
-  collector.add(__coverage__);
-  //collector.files().forEach(file => {
-  //  let file_coverage = collector.fileCoverageFor(file);
-  //});
-
-  let final_coverage = collector.getFinalCoverage();
-
-  let reporter = new Reporter(false, 'reports/coverage');
+  let reporter = createReporter(config);
   reporter.add('lcov');
   reporter.add('text');
   reporter.add('text-summary');
   reporter.add('json');
   reporter.add('cobertura');
-  reporter.write(collector, true, () => { });
+  reporter.write(coverage_map);
 
   fs.writeFileSync('reports/tests/index.html', jv.junit_viewer('reports/tests'));
   process.exit(0);

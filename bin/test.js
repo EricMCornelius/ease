@@ -19,7 +19,7 @@ var _jsYaml = _interopRequireDefault(require("js-yaml"));
 
 var _utils = require("./utils");
 
-var _istanbul = require("istanbul");
+var _istanbulApi = require("istanbul-api");
 
 var _core = require("@babel/core");
 
@@ -32,8 +32,6 @@ var _junitViewer = _interopRequireDefault(require("junit-viewer"));
 var _polyfill = _interopRequireDefault(require("@babel/polyfill"));
 
 var _sourceMapSupport = _interopRequireDefault(require("source-map-support"));
-
-var _babelPluginIstanbul = _interopRequireDefault(require("babel-plugin-istanbul"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -62,7 +60,7 @@ _sourceMapSupport.default.install({
 });
 
 global.__tests__ = new _mocha.default(_utils.mocha_opts);
-global.__coverage__ = {};
+global.__coverage__ = global.__coverage__ || {};
 global.__linting__ = {
   results: [],
   errorCount: 0,
@@ -73,9 +71,10 @@ let cli = new _eslint.CLIEngine({
   useEslintrc: true,
   cache: false,
   ..._utils.eslint_opts
-});
+}); // istanbul plugin configuration
+// see https://github.com/istanbuljs/nyc#selecting-files-for-coverage
 
-_utils.babel_opts.plugins.push(_babelPluginIstanbul.default);
+_utils.babel_opts.plugins.push((0, _utils.resolve_babel_plugin)('istanbul').concat(_utils.coverage_opts));
 
 process.on('beforeExit', () => {
   _mkdirp.default.sync('reports/coverage');
@@ -90,26 +89,21 @@ process.on('beforeExit', () => {
 
   _fs.default.writeFileSync('reports/style/index.html', html_formatter(__linting__.results));
 
-  let collector = new _istanbul.Collector();
+  const coverage_map = _istanbulApi.libCoverage.createCoverageMap(__coverage__);
 
-  for (const key of Object.keys(__coverage__)) {
-    if (key.indexOf('node_modules') !== -1) {
-      delete __coverage__[key];
+  const config = _istanbulApi.config.loadFile(null, {
+    reporting: {
+      dir: 'reports/coverage'
     }
-  }
+  });
 
-  collector.add(__coverage__); //collector.files().forEach(file => {
-  //  let file_coverage = collector.fileCoverageFor(file);
-  //});
-
-  let final_coverage = collector.getFinalCoverage();
-  let reporter = new _istanbul.Reporter(false, 'reports/coverage');
+  let reporter = (0, _istanbulApi.createReporter)(config);
   reporter.add('lcov');
   reporter.add('text');
   reporter.add('text-summary');
   reporter.add('json');
   reporter.add('cobertura');
-  reporter.write(collector, true, () => {});
+  reporter.write(coverage_map);
 
   _fs.default.writeFileSync('reports/tests/index.html', _junitViewer.default.junit_viewer('reports/tests'));
 

@@ -176,6 +176,9 @@ catch(err) {
 let webpack_opts = {};
 let webpack_default_opts = {};
 
+let coverage_opts = {};
+let coverage_default_opts = {};
+
 // set the default opts to the webpack.config.js
 try {
   const webpack_file = resolve(process.cwd(), 'webpack.config.js');
@@ -214,6 +217,7 @@ try {
   defaultsDeep(eslint_opts, config.eslint, eslint_default_opts);
   defaultsDeep(mocha_opts, config.mocha, mocha_default_opts);
   defaultsDeep(webpack_opts, config.webpack, webpack_default_opts);
+  defaultsDeep(coverage_opts, config.coverage, coverage_default_opts);
 
   const {override = false, targets, ...config_babel_opts} = (config.babel || {});
   if (override) {
@@ -283,6 +287,7 @@ babel_opts.presets = babel_opts.presets.map(resolve_babel_preset);
 export {
   formatter,
   babel_opts,
+  coverage_opts,
   eslint_opts,
   mocha_opts,
   webpack_opts,
@@ -290,5 +295,7 @@ export {
   standard_transformer_filter,
   standard_resolver,
   cache,
-  log
+  log,
+  resolve_babel_plugin,
+  resolve_babel_preset
 }

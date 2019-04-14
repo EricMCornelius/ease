@@ -3,7 +3,7 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.log = exports.cache = exports.standard_resolver = exports.standard_transformer_filter = exports.standard_transformer = exports.webpack_opts = exports.mocha_opts = exports.eslint_opts = exports.babel_opts = exports.formatter = void 0;
+exports.resolve_babel_preset = exports.resolve_babel_plugin = exports.log = exports.cache = exports.standard_resolver = exports.standard_transformer_filter = exports.standard_transformer = exports.webpack_opts = exports.mocha_opts = exports.eslint_opts = exports.coverage_opts = exports.babel_opts = exports.formatter = void 0;
 
 var _logger = _interopRequireDefault(require("./logger"));
 
@@ -208,7 +208,10 @@ try {
 
 let webpack_opts = {};
 exports.webpack_opts = webpack_opts;
-let webpack_default_opts = {}; // set the default opts to the webpack.config.js
+let webpack_default_opts = {};
+let coverage_opts = {};
+exports.coverage_opts = coverage_opts;
+let coverage_default_opts = {}; // set the default opts to the webpack.config.js
 
 try {
   const webpack_file = (0, _path.resolve)(process.cwd(), 'webpack.config.js');
@@ -256,6 +259,7 @@ try {
   (0, _lodash.defaultsDeep)(eslint_opts, config.eslint, eslint_default_opts);
   (0, _lodash.defaultsDeep)(mocha_opts, config.mocha, mocha_default_opts);
   (0, _lodash.defaultsDeep)(webpack_opts, config.webpack, webpack_default_opts);
+  (0, _lodash.defaultsDeep)(coverage_opts, config.coverage, coverage_default_opts);
   const {
     override = false,
     targets,
@@ -322,6 +326,8 @@ const resolve_babel_dep = type => plugin => {
 };
 
 const resolve_babel_plugin = resolve_babel_dep('plugin');
+exports.resolve_babel_plugin = resolve_babel_plugin;
 const resolve_babel_preset = resolve_babel_dep('preset');
+exports.resolve_babel_preset = resolve_babel_preset;
 babel_opts.plugins = babel_opts.plugins.map(resolve_babel_plugin);
 babel_opts.presets = babel_opts.presets.map(resolve_babel_preset);

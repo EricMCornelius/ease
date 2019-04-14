@@ -5,7 +5,7 @@ import {defaultsDeep} from 'lodash';
 
 import {parse} from 'url';
 import webpack from 'webpack';
-import serve from 'webpack-serve';
+import DevServer from 'webpack-dev-server';
 import path from 'path';
 import patcher from './module_patch';
 import {formatter, webpack_opts, babel_opts, standard_transformer, standard_transformer_filter, standard_resolver} from './utils';
@@ -21,12 +21,12 @@ const filename = output ? path.basename(pathname) : 'bundle';
 
 patcher(standard_transformer, standard_resolver);
 
-let {build_dir, reload_url = 'ws://localhost:8081', backend_url = 'ws://localhost:8081', host = 'localhost', port = 8888, public_path = directory, hook, name = filename, type, ...rest} = webpack_opts;
+let {build_dir, public_path = directory, hook, name = filename, type, serve = {}, ...rest} = webpack_opts;
 
-const public_websocket = parse(reload_url);
-const private_websocket = parse(backend_url);
-
-const use_https = public_websocket.protocol === 'wss:';
+defaultsDeep(serve, {
+  host: 'localhost',
+  port: 8888
+});
 
 const resolve = val => path.resolve(__dirname, '../node_modules', val);
 
@@ -57,7 +57,6 @@ let webpack_settings = defaultsDeep(rest, {
     }
   ],
   plugins: [
-    new webpack.ProgressPlugin(formatter),
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': '"dev"'
     })
@@ -104,25 +103,7 @@ let webpack_settings = defaultsDeep(rest, {
       loaders: ['raw-loader']
     }]
   },
-  watch: true,
-  serve: {
-    host,
-    port,
-    devMiddleware: {
-      publicPath: public_path
-    },
-    hotClient: {
-      https: use_https,
-      host: {
-        server: private_websocket.hostname,
-        client: public_websocket.hostname
-      },
-      port: {
-        server: parseInt(private_websocket.port, 10),
-        client: parseInt(public_websocket.port, 10)
-      }
-    }
-  }
+  watch: true
 });
 
 if (hook) {
@@ -134,6 +115,16 @@ if (hook) {
 
 const config = webpack_settings;
 
-const argv = {};
+const compiler = webpack(config);
 
-serve(argv, {config});
+const {host, port} = serve;
+
+const options = {
+  hot: true,
+  progress: true,
+  ...serve
+};
+
+const server = new DevServer(compiler, options);
+
+server.listen(port, host);

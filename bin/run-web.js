@@ -9,7 +9,7 @@ var _url = require("url");
 
 var _webpack = _interopRequireDefault(require("webpack"));
 
-var _webpackServe = _interopRequireDefault(require("webpack-serve"));
+var _webpackDevServer = _interopRequireDefault(require("webpack-dev-server"));
 
 var _path = _interopRequireDefault(require("path"));
 
@@ -34,19 +34,17 @@ const filename = output ? _path.default.basename(pathname) : 'bundle';
 (0, _module_patch.default)(_utils.standard_transformer, _utils.standard_resolver);
 let {
   build_dir,
-  reload_url = 'ws://localhost:8081',
-  backend_url = 'ws://localhost:8081',
-  host = 'localhost',
-  port = 8888,
   public_path = directory,
   hook,
   name = filename,
   type,
+  serve = {},
   ...rest
 } = _utils.webpack_opts;
-const public_websocket = (0, _url.parse)(reload_url);
-const private_websocket = (0, _url.parse)(backend_url);
-const use_https = public_websocket.protocol === 'wss:';
+(0, _lodash.defaultsDeep)(serve, {
+  host: 'localhost',
+  port: 8888
+});
 
 const resolve = val => _path.default.resolve(__dirname, '../node_modules', val); // add hot loader plugin to babel
 
@@ -74,7 +72,7 @@ let webpack_settings = (0, _lodash.defaultsDeep)(rest, {
     'external': true,
     'regenerator': true
   }],
-  plugins: [new _webpack.default.ProgressPlugin(_utils.formatter), new _webpack.default.DefinePlugin({
+  plugins: [new _webpack.default.DefinePlugin({
     'process.env.NODE_ENV': '"dev"'
   }) // new DashboardPlugin()
   ],
@@ -119,25 +117,7 @@ let webpack_settings = (0, _lodash.defaultsDeep)(rest, {
       loaders: ['raw-loader']
     }]
   },
-  watch: true,
-  serve: {
-    host,
-    port,
-    devMiddleware: {
-      publicPath: public_path
-    },
-    hotClient: {
-      https: use_https,
-      host: {
-        server: private_websocket.hostname,
-        client: public_websocket.hostname
-      },
-      port: {
-        server: parseInt(private_websocket.port, 10),
-        client: parseInt(public_websocket.port, 10)
-      }
-    }
-  }
+  watch: true
 });
 
 if (hook) {
@@ -149,7 +129,15 @@ if (hook) {
 }
 
 const config = webpack_settings;
-const argv = {};
-(0, _webpackServe.default)(argv, {
-  config
-});
+const compiler = (0, _webpack.default)(config);
+const {
+  host,
+  port
+} = serve;
+const options = {
+  hot: true,
+  progress: true,
+  ...serve
+};
+const server = new _webpackDevServer.default(compiler, options);
+server.listen(port, host);
