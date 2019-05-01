@@ -174,7 +174,9 @@ catch(err) {
 }
 
 let webpack_opts = {};
-let webpack_default_opts = {};
+let webpack_default_opts = {
+  mode: 'production'
+};
 
 let coverage_opts = {};
 let coverage_default_opts = {};

@@ -60,7 +60,6 @@ let webpack_settings = _.defaultsDeep(rest, {
       debug: false
     }),
     ...replacement_plugins,
-    new webpack.optimize.ModuleConcatenationPlugin(),
     analyzer
   ],
   module: {

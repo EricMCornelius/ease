@@ -208,7 +208,9 @@ try {
 
 let webpack_opts = {};
 exports.webpack_opts = webpack_opts;
-let webpack_default_opts = {};
+let webpack_default_opts = {
+  mode: 'production'
+};
 let coverage_opts = {};
 exports.coverage_opts = coverage_opts;
 let coverage_default_opts = {}; // set the default opts to the webpack.config.js
