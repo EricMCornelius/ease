@@ -19,7 +19,13 @@ var _jsYaml = _interopRequireDefault(require("js-yaml"));
 
 var _utils = require("./utils");
 
-var _istanbulApi = require("istanbul-api");
+var _istanbulLibCoverage = _interopRequireDefault(require("istanbul-lib-coverage"));
+
+var _istanbulLibSourceMaps = _interopRequireDefault(require("istanbul-lib-source-maps"));
+
+var _istanbulLibReport = _interopRequireDefault(require("istanbul-lib-report"));
+
+var _istanbulReports = _interopRequireDefault(require("istanbul-reports"));
 
 var _core = require("@babel/core");
 
@@ -35,6 +41,7 @@ var _sourceMapSupport = _interopRequireDefault(require("source-map-support"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+//import {libCoverage, createReporter, config as libConfig} from 'istanbul-api';
 const sourcemap_cache = {};
 
 _sourceMapSupport.default.install({
@@ -89,21 +96,26 @@ process.on('beforeExit', () => {
 
   _fs.default.writeFileSync('reports/style/index.html', html_formatter(__linting__.results));
 
-  const coverage_map = _istanbulApi.libCoverage.createCoverageMap(__coverage__);
+  const source_map_store = _istanbulLibSourceMaps.default.createSourceMapStore();
 
-  const config = _istanbulApi.config.loadFile(null, {
-    reporting: {
-      dir: 'reports/coverage'
-    }
+  const coverage_map = _istanbulLibCoverage.default.createCoverageMap(__coverage__);
+
+  const {
+    map,
+    sourceFinder
+  } = source_map_store.transformCoverage(coverage_map);
+
+  const report_context = _istanbulLibReport.default.createContext({
+    dir: 'reports/coverage',
+    sourceFinder
   });
 
-  let reporter = (0, _istanbulApi.createReporter)(config);
-  reporter.add('lcov');
-  reporter.add('text');
-  reporter.add('text-summary');
-  reporter.add('json');
-  reporter.add('cobertura');
-  reporter.write(coverage_map);
+  const tree = _istanbulLibReport.default.summarizers.pkg(map);
+
+  const coverageReporters = ['lcov', 'text', 'text-summary', 'json', 'cobertura'];
+  coverageReporters.forEach(reporter => {
+    tree.visit(_istanbulReports.default.create(reporter, {}), report_context);
+  });
 
   _fs.default.writeFileSync('reports/tests/index.html', _junitViewer.default.junit_viewer('reports/tests'));
 

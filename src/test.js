@@ -11,7 +11,11 @@ import mkdirp from 'mkdirp';
 import yaml from 'js-yaml';
 import {babel_opts, coverage_opts, mocha_opts, eslint_opts, standard_resolver, standard_transformer_filter, log, cache, resolve_babel_plugin} from './utils';
 
-import {libCoverage, createReporter, config as libConfig} from 'istanbul-api';
+import libCoverage from 'istanbul-lib-coverage';
+import libSourceMaps from 'istanbul-lib-source-maps';
+import istanbulReport from 'istanbul-lib-report';
+import istanbulReports from 'istanbul-reports';
+
 import {transform} from '@babel/core';
 import {SourceCode, CLIEngine} from 'eslint';
 import mocha from 'mocha';
@@ -67,20 +71,19 @@ process.on('beforeExit', () => {
   let html_formatter = cli.getFormatter('html');
   fs.writeFileSync('reports/style/index.html', html_formatter(__linting__.results));
 
+  const source_map_store = libSourceMaps.createSourceMapStore();
   const coverage_map = libCoverage.createCoverageMap(__coverage__);
-  const config = libConfig.loadFile(null, {
-    reporting: {
-      dir: 'reports/coverage'
-    }
+  const {map, sourceFinder} = source_map_store.transformCoverage(coverage_map);
+  const report_context = istanbulReport.createContext({
+    dir: 'reports/coverage',
+    sourceFinder
   });
 
-  let reporter = createReporter(config);
-  reporter.add('lcov');
-  reporter.add('text');
-  reporter.add('text-summary');
-  reporter.add('json');
-  reporter.add('cobertura');
-  reporter.write(coverage_map);
+  const tree = istanbulReport.summarizers.pkg(map);
+  const coverageReporters = ['lcov', 'text', 'text-summary', 'json', 'cobertura'];
+  coverageReporters.forEach(reporter => {
+    tree.visit(istanbulReports.create(reporter, {}), report_context);
+  });
 
   fs.writeFileSync('reports/tests/index.html', jv.junit_viewer('reports/tests'));
   process.exit(0);
