@@ -41,7 +41,6 @@ var _sourceMapSupport = _interopRequireDefault(require("source-map-support"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-//import {libCoverage, createReporter, config as libConfig} from 'istanbul-api';
 const sourcemap_cache = {};
 
 _sourceMapSupport.default.install({
@@ -119,7 +118,8 @@ process.on('beforeExit', () => {
 
   _fs.default.writeFileSync('reports/tests/index.html', _junitViewer.default.junit_viewer('reports/tests'));
 
-  process.exit(0);
+  const had_failures = global.__tests__.failures > 0;
+  process.exit(had_failures ? 1 : 0);
 });
 const image_exts = ['svg', 'png', 'jpg', 'gif'];
 
@@ -242,8 +242,7 @@ if (is_directory(entry)) {
 
     __tests__.addFile(file);
   });
-
-  __tests__.run();
+  global.__tests__ = __tests__.run();
 } else {
   require(entry);
 }

@@ -86,7 +86,8 @@ process.on('beforeExit', () => {
   });
 
   fs.writeFileSync('reports/tests/index.html', jv.junit_viewer('reports/tests'));
-  process.exit(0);
+  const had_failures = global.__tests__.failures > 0;
+  process.exit(had_failures ? 1 : 0);
 });
 
 const image_exts = ['svg', 'png', 'jpg', 'gif'];
@@ -187,7 +188,7 @@ if (is_directory(entry)) {
     log.info('Adding test file:', file);
     __tests__.addFile(file);
   });
-  __tests__.run();
+  global.__tests__ = __tests__.run();
 }
 else  {
   require(entry);

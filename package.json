@@ -41,7 +41,6 @@
     "builtins": "^2.0.0",
     "css-loader": "^2.1.1",
     "eslint": "^5.16.0",
-    "extract-text-webpack-plugin": "^3.0.2",
     "istanbul-lib-coverage": "^2.0.5",
     "istanbul-lib-instrument": "^3.3.0",
     "istanbul-lib-report": "^2.0.8",
