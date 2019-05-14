@@ -15,7 +15,7 @@ const recurse = doc => {
   return [];
 };
 
-const skipped = ['fsevents', 'node-sass'];
+const skipped = ['fsevents', 'node-sass', '@babel/helper-hoist-variables'];
 
 const deps = uniq(recurse(package_lock_json)).filter(f => skipped.indexOf(f) === -1);
 package_json.bundledDependencies = deps;

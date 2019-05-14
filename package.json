@@ -1,6 +1,6 @@
 {
   "name": "@ericmcornelius/ease",
-  "version": "0.4.15",
+  "version": "0.4.16",
   "description": "Simple babel transpilation, istanbul code coverage, mocha unit testing, and webpack building",
   "main": "index.js",
   "scripts": {},
@@ -92,7 +92,6 @@
     "@babel/helper-explode-assignable-expression",
     "@babel/helper-function-name",
     "@babel/helper-get-function-arity",
-    "@babel/helper-hoist-variables",
     "@babel/helper-member-expression-to-functions",
     "@babel/helper-module-imports",
     "@babel/helper-module-transforms",
