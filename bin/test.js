@@ -35,6 +35,8 @@ var _mocha = _interopRequireDefault(require("mocha"));
 
 var _junitViewer = _interopRequireDefault(require("junit-viewer"));
 
+var _jenkins = _interopRequireDefault(require("./reporters/jenkins"));
+
 var _polyfill = _interopRequireDefault(require("@babel/polyfill"));
 
 var _sourceMapSupport = _interopRequireDefault(require("source-map-support"));
@@ -65,7 +67,20 @@ _sourceMapSupport.default.install({
 
 });
 
-global.__tests__ = new _mocha.default(_utils.mocha_opts);
+const init_mocha = opts => {
+  const {
+    reporter,
+    reporterOptions,
+    ...rest
+  } = opts;
+  const inst = new _mocha.default(rest);
+  const reporter_inst = reporter === 'jenkins' ? _jenkins.default : reporter;
+  console.log(reporter_inst);
+  inst.reporter(reporter_inst, reporterOptions);
+  return inst;
+};
+
+global.__tests__ = init_mocha(_utils.mocha_opts);
 global.__coverage__ = global.__coverage__ || {};
 global.__linting__ = {
   results: [],

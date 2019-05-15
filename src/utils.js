@@ -100,7 +100,7 @@ const babel_default_opts = {
 let mocha_opts = {};
 const mocha_default_opts = {
   timeout: 20000,
-  reporter: 'mocha-jenkins-reporter',
+  reporter: 'jenkins',
   reporterOptions: {
     junit_report_name: 'tests',
     junit_report_path: 'reports/tests/report.xml',

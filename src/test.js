@@ -20,6 +20,7 @@ import {transform} from '@babel/core';
 import {SourceCode, CLIEngine} from 'eslint';
 import mocha from 'mocha';
 import jv from 'junit-viewer';
+import jenkins from './reporters/jenkins';
 
 import polyfill from '@babel/polyfill';
 import sourcemaps from 'source-map-support';
@@ -41,7 +42,16 @@ sourcemaps.install({
   }
 });
 
-global.__tests__ = new mocha(mocha_opts);
+const init_mocha = opts => {
+  const {reporter, reporterOptions, ...rest} = opts;
+  const inst = new mocha(rest);
+  const reporter_inst = reporter === 'jenkins' ? jenkins : reporter;
+  console.log(reporter_inst);
+  inst.reporter(reporter_inst, reporterOptions);
+  return inst;
+};
+
+global.__tests__ = init_mocha(mocha_opts);
 global.__coverage__ = global.__coverage__ || {};
 global.__linting__ = {
   results: [],
