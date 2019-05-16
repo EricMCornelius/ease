@@ -1,3 +1,3 @@
 npx babel src -d bin
-./bundle.js
+#./bundle.js
 rm -rf .ease_cache
