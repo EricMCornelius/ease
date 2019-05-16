@@ -20,5 +20,3 @@ const skipped = ['fsevents', 'node-sass', '@babel/helper-hoist-variables'];
 const deps = uniq(recurse(package_lock_json)).filter(f => skipped.indexOf(f) === -1);
 package_json.bundledDependencies = deps;
 writeFileSync('package.json', JSON.stringify(package_json, null, 2));
-
-spawn('npm', ['pack'], {stdio: 'inherit'});

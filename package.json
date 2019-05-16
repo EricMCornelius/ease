@@ -1,12 +1,14 @@
 {
-  "name": "@ericmcornelius/ease",
-  "version": "0.4.17",
+  "name": "@cylerian/ease",
+  "version": "0.5.0",
   "description": "Simple babel transpilation, istanbul code coverage, mocha unit testing, and webpack building",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "prepare": "./build.sh"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ericmcornelius/ease.git"
+    "url": "https://github.com/mysoc/ease.git"
   },
   "keywords": [
     "babel",
