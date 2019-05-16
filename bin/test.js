@@ -277,5 +277,7 @@ if (is_directory(entry)) {
   files.forEach(file => __tests__.addFile(file));
   global.__tests__ = __tests__.run();
 } else {
-  require(entry);
+  __tests__.addFile(entry);
+
+  global.__tests__ = __tests__.run();
 }
