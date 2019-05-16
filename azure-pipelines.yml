@@ -1,0 +1,10 @@
+resources:
+  repositories:
+    - repository: templates
+      type: github
+      name: mysoc/azure_devops
+      ref: refs/heads/master
+      endpoint: mysoc
+
+jobs:
+- template: node_matrix.yml@templates
