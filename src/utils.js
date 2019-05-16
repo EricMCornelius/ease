@@ -242,7 +242,12 @@ try {
   }
 
   if (config.transform_filter) {
-    standard_transformer_filter = config.transform_filter;
+    standard_transformer_filter = file => {
+      if (/ease\/node_modules/.test(file) || /ease\\node_modules/.test(file)) {
+        return false;
+      }
+      return config.transform_filter(file);
+    }
   }
 
   if (config.log_level) {

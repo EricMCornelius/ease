@@ -41,6 +41,8 @@ var _polyfill = _interopRequireDefault(require("@babel/polyfill"));
 
 var _sourceMapSupport = _interopRequireDefault(require("source-map-support"));
 
+var _anymatch = _interopRequireDefault(require("anymatch"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const sourcemap_cache = {};
@@ -71,12 +73,32 @@ const init_mocha = opts => {
   const {
     reporter,
     reporterOptions,
+    include,
+    exclude,
     ...rest
   } = opts;
   const inst = new _mocha.default(rest);
+  const excluded = exclude ? (0, _anymatch.default)(exclude) : v => false;
+  const included = include ? (0, _anymatch.default)(include) : v => true;
   const reporter_inst = reporter === 'jenkins' ? _jenkins.default : reporter;
-  console.log(reporter_inst);
   inst.reporter(reporter_inst, reporterOptions);
+
+  const _addfile = inst.addFile.bind(inst);
+
+  inst.addFile = file => {
+    if (excluded(file)) {
+      _utils.log.info('Skipping excluded test file', file);
+
+      return;
+    }
+
+    if (included(file)) {
+      _utils.log.info('Adding test file', file);
+
+      _addfile(file);
+    }
+  };
+
   return inst;
 };
 
@@ -252,11 +274,7 @@ let file_filter = process.argv[3] ? new RegExp(process.argv[3]) : /\.js$/;
 
 if (is_directory(entry)) {
   let files = (0, _shelljs.find)(entry).filter(arg => file_filter.test(arg) || arg.indexOf('_hooks.js') > 0).sort();
-  files.forEach(file => {
-    _utils.log.info('Adding test file:', file);
-
-    __tests__.addFile(file);
-  });
+  files.forEach(file => __tests__.addFile(file));
   global.__tests__ = __tests__.run();
 } else {
   require(entry);

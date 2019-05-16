@@ -25,6 +25,8 @@ import jenkins from './reporters/jenkins';
 import polyfill from '@babel/polyfill';
 import sourcemaps from 'source-map-support';
 
+import anymatch from 'anymatch';
+
 const sourcemap_cache = {};
 
 sourcemaps.install({
@@ -43,11 +45,25 @@ sourcemaps.install({
 });
 
 const init_mocha = opts => {
-  const {reporter, reporterOptions, ...rest} = opts;
+  const {reporter, reporterOptions, include, exclude, ...rest} = opts;
   const inst = new mocha(rest);
+  const excluded = exclude ? anymatch(exclude) : v => false;
+  const included = include ? anymatch(include) : v => true;
   const reporter_inst = reporter === 'jenkins' ? jenkins : reporter;
-  console.log(reporter_inst);
   inst.reporter(reporter_inst, reporterOptions);
+
+  const _addfile = inst.addFile.bind(inst);
+  inst.addFile = file => {
+    if (excluded(file)) {
+      log.info('Skipping excluded test file', file);
+      return;
+    }
+    if (included(file)) {
+      log.info('Adding test file', file);
+      _addfile(file);
+    }
+  }
+
   return inst;
 };
 
@@ -194,10 +210,7 @@ let file_filter = process.argv[3] ? new RegExp(process.argv[3]):/\.js$/;
 
 if (is_directory(entry)) {
   let files = find(entry).filter(arg => file_filter.test(arg) || arg.indexOf('_hooks.js') > 0).sort();
-  files.forEach(file => {
-    log.info('Adding test file:', file);
-    __tests__.addFile(file);
-  });
+  files.forEach(file => __tests__.addFile(file));
   global.__tests__ = __tests__.run();
 }
 else  {

@@ -1,0 +1,7 @@
+const config = {
+  mocha: {
+    exclude: '**/*.ignored.js'
+  }
+};
+
+module.exports = config;
