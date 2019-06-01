@@ -1,6 +1,6 @@
 {
   "name": "@ericmcornelius/ease",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "Simple babel transpilation, istanbul code coverage, mocha unit testing, and webpack building",
   "main": "index.js",
   "scripts": {
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mysoc/ease.git"
+    "url": "https://github.com/ericmcornelius/ease.git"
   },
   "keywords": [
     "babel",
@@ -21,9 +21,9 @@
   ],
   "author": "Eric Cornelius",
   "bugs": {
-    "url": "https://github.com/mysoc/ease/issues"
+    "url": "https://github.com/ericmcornelius/ease/issues"
   },
-  "homepage": "https://github.com/msyoc/ease#readme",
+  "homepage": "https://github.com/ericmcornelius/ease#readme",
   "dependencies": {
     "@babel/cli": "^7.4.4",
     "@babel/core": "^7.4.5",
